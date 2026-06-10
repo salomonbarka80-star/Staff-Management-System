@@ -1,0 +1,200 @@
+.auth-page {
+  min-height: 100vh;
+  background: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-blob-1, .bg-blob-2 {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.12;
+}
+.bg-blob-1 { width: 600px; height: 600px; background: var(--color-secondary); top: -100px; right: 0; }
+.bg-blob-2 { width: 400px; height: 400px; background: var(--color-primary-container); bottom: 0; left: 0; }
+
+.setup-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  background: #fff;
+  border-bottom: 1px solid var(--color-outline-variant);
+  z-index: 10;
+  position: relative;
+}
+
+.auth-brand {
+  display: flex; align-items: center; gap: 10px;
+}
+.brand-icon {
+  width: 36px; height: 36px;
+  background: var(--color-secondary);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+}
+.brand-name { font-weight: 800; font-size: 17px; letter-spacing: -0.02em; }
+
+.setup-nav { display: flex; align-items: center; gap: 24px; }
+.setup-nav-link {
+  font-size: 13px; color: var(--color-on-surface-variant);
+  &:hover { color: var(--color-on-surface); }
+}
+
+.setup-main {
+  flex: 1; display: flex;
+  align-items: center; justify-content: center;
+  padding: 48px 32px;
+  position: relative; z-index: 1;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  max-width: 900px;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.setup-context { display: flex; flex-direction: column; justify-content: center; gap: 32px; }
+
+.step-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--color-secondary-fixed);
+  color: var(--color-secondary);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.security-features { display: flex; flex-direction: column; gap: 12px; }
+.security-feature-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 10px;
+}
+
+.setup-form-card {
+  padding: 2rem;
+  background: #fff;
+}
+
+.password-wrapper {
+  position: relative;
+}
+.password-toggle {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-outline);
+  cursor: pointer;
+  &:hover { color: var(--color-on-surface); }
+}
+
+.strength-section { margin-top: 10px; }
+.strength-label-row {
+  display: flex; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.strength-bar-track {
+  height: 4px;
+  background: var(--color-surface-container);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.strength-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.password-rules {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 4px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--color-on-surface-variant);
+  }
+  .rule-pass {
+    color: var(--color-success);
+  }
+}
+
+.mfa-toggle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 10px;
+}
+.mfa-info { display: flex; align-items: flex-start; gap: 10px; }
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+
+  input { opacity: 0; width: 0; height: 0; }
+}
+.toggle-knob {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--color-outline-variant);
+  border-radius: 99px;
+  transition: 0.2s;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+}
+input:checked + .toggle-knob {
+  background: var(--color-secondary);
+  &::before { transform: translateX(20px); }
+}
+
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

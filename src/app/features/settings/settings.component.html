@@ -1,0 +1,284 @@
+<div class="settings-page">
+  <div class="page-header">
+    <div>
+      <h1 class="text-h1">Settings</h1>
+      <p class="text-body-sm" style="color:var(--color-on-surface-variant);margin-top:4px;">
+        Manage your profile, organization preferences, and system integrations.
+      </p>
+    </div>
+  </div>
+
+  <!-- Success Toast -->
+  <div class="toast toast-success" *ngIf="savedSuccess">
+    <span class="material-symbols-outlined icon-filled">check_circle</span>
+    Settings saved successfully.
+  </div>
+
+  <div class="settings-layout">
+    <!-- Sidebar Nav -->
+    <nav class="settings-nav">
+      <button
+        *ngFor="let s of sections"
+        class="settings-nav-btn"
+        [class.active]="activeSection === s.id"
+        (click)="activeSection = $any(s.id)"
+      >
+        <span class="material-symbols-outlined" style="font-size:18px;">{{ s.icon }}</span>
+        {{ s.label }}
+      </button>
+    </nav>
+
+    <!-- Content Panel -->
+    <div class="settings-content">
+
+      <!-- ── PROFILE ── -->
+      <div *ngIf="activeSection==='profile'" class="settings-section">
+        <div class="section-header">
+          <h2 class="text-h2">My Profile</h2>
+          <p style="color:var(--color-on-surface-variant);font-size:14px;">Update your personal information and preferences.</p>
+        </div>
+
+        <!-- Avatar -->
+        <div class="profile-avatar-row">
+          <div class="profile-avatar">
+            <img *ngIf="avatarPreview" [src]="avatarPreview" alt="Profile" />
+            <span *ngIf="!avatarPreview">
+              {{ ($any(currentUser)?.first_name ?? $any(currentUser)?.firstName ?? '?').charAt(0) }}
+              {{ ($any(currentUser)?.last_name ?? $any(currentUser)?.lastName ?? '').charAt(0) }}
+            </span>
+          </div>
+          <div>
+            <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" accept="image/*" />
+            <button type="button" class="btn btn-outline btn-sm" (click)="fileInput.click()">
+              <span class="material-symbols-outlined">upload</span> Upload Photo
+            </button>
+            <p style="font-size:12px;color:var(--color-on-surface-variant);margin-top:6px;">JPG or PNG, max 2MB.</p>
+          </div>
+        </div>
+
+        <form [formGroup]="profileForm" (ngSubmit)="save()" class="form-grid">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input class="form-input" formControlName="firstName" [class.error]="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched" />
+            <span class="form-error" *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
+              First name is required and must be at least 2 characters
+            </span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input class="form-input" formControlName="lastName" [class.error]="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched" />
+            <span class="form-error" *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
+              Last name is required and must be at least 2 characters
+            </span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Work Email</label>
+            <input class="form-input" formControlName="email" type="email" [class.error]="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" />
+            <span class="form-error" *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+              Please enter a valid email address
+            </span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Job Title</label>
+            <input class="form-input" formControlName="jobTitle" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <input class="form-input" formControlName="department" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input class="form-input" formControlName="phoneNumber" type="tel" />
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">Timezone</label>
+            <select class="form-input form-select">
+              <option>America/New_York (UTC-5)</option>
+              <option>America/Chicago (UTC-6)</option>
+              <option>Europe/London (UTC+0)</option>
+              <option>Europe/Paris (UTC+1)</option>
+            </select>
+          </div>
+        </form>
+        <div class="section-footer">
+          <button class="btn btn-primary" [disabled]="saving || profileForm.invalid" (click)="save()">
+            <span *ngIf="!saving">Save Changes</span>
+            <span *ngIf="saving" class="spinner"></span>
+          </button>
+          <button class="btn btn-ghost" type="button" (click)="cancel()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- ── ORGANIZATION ── -->
+      <div *ngIf="activeSection==='organization'" class="settings-section">
+        <div class="section-header">
+          <h2 class="text-h2">Organization Settings</h2>
+          <p style="color:var(--color-on-surface-variant);font-size:14px;">Configure company-wide HR policies and defaults.</p>
+        </div>
+        <div class="form-grid">
+          <div class="form-group form-full">
+            <label class="form-label">Company Name</label>
+            <input class="form-input" value="Enterprise Corp Global" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Industry</label>
+            <select class="form-input form-select">
+              <option>Technology</option>
+              <option>Finance</option>
+              <option>Healthcare</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Company Size</label>
+            <select class="form-input form-select">
+              <option>1,001–5,000</option>
+              <option>5,001–10,000</option>
+              <option>10,000+</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fiscal Year Start</label>
+            <select class="form-input form-select">
+              <option>January 1</option>
+              <option>April 1</option>
+              <option>July 1</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Default Currency</label>
+            <select class="form-input form-select">
+              <option>USD — US Dollar</option>
+              <option>EUR — Euro</option>
+              <option>GBP — British Pound</option>
+            </select>
+          </div>
+        </div>
+        <div class="policy-toggles">
+          <h3 class="text-h3" style="margin-bottom:16px;">HR Policy Toggles</h3>
+          <div class="toggle-row" *ngFor="let t of ['Probation Period (90 days)', 'Mandatory Performance Reviews', 'Allow Remote Clock-In', 'Auto-Approve Annual Leave < 2 days', 'Enable Multi-Currency Payroll']">
+            <span style="font-size:14px;">{{ t }}</span>
+            <label class="toggle-switch">
+              <input type="checkbox" [checked]="true" />
+              <span class="toggle-knob"></span>
+            </label>
+          </div>
+        </div>
+        <div class="section-footer">
+          <button class="btn btn-primary" (click)="save()">Save Changes</button>
+          <button class="btn btn-ghost">Cancel</button>
+        </div>
+      </div>
+
+      <!-- ── SECURITY ── -->
+      <div *ngIf="activeSection==='security'" class="settings-section">
+        <div class="section-header">
+          <h2 class="text-h2">Security &amp; Access</h2>
+          <p style="color:var(--color-on-surface-variant);font-size:14px;">Manage authentication and access control policies.</p>
+        </div>
+        <div class="security-cards">
+          <div class="security-card">
+            <div class="security-card-header">
+              <div class="sec-icon"><span class="material-symbols-outlined icon-filled">lock</span></div>
+              <div>
+                <h3 class="text-label-md">Change Password</h3>
+                <p style="font-size:12px;color:var(--color-on-surface-variant);">Last changed 47 days ago</p>
+              </div>
+              <button class="btn btn-outline btn-sm" style="margin-left:auto;">Change</button>
+            </div>
+          </div>
+          <div class="security-card">
+            <div class="security-card-header">
+              <div class="sec-icon sec-green"><span class="material-symbols-outlined icon-filled">smartphone</span></div>
+              <div>
+                <h3 class="text-label-md">Two-Factor Authentication</h3>
+                <p style="font-size:12px;color:var(--color-success);">Enabled via Authenticator App</p>
+              </div>
+              <button class="btn btn-ghost btn-sm" style="margin-left:auto;">Configure</button>
+            </div>
+          </div>
+          <div class="security-card">
+            <div class="security-card-header">
+              <div class="sec-icon sec-blue"><span class="material-symbols-outlined icon-filled">key</span></div>
+              <div>
+                <h3 class="text-label-md">Single Sign-On (SSO)</h3>
+                <p style="font-size:12px;color:var(--color-on-surface-variant);">Azure AD · Google Workspace connected</p>
+              </div>
+              <button class="btn btn-outline btn-sm" style="margin-left:auto;">Manage</button>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-h3" style="margin:24px 0 12px;">Active Sessions</h3>
+        <div class="session-list">
+          <div class="session-item" *ngFor="let sess of ['Chrome · New York, NY · Current session', 'Safari · London, UK · 2 hours ago', 'Firefox · Berlin, DE · 3 days ago']">
+            <span class="material-symbols-outlined" style="color:var(--color-on-surface-variant);">computer</span>
+            <span style="font-size:13px;flex:1;">{{ sess }}</span>
+            <button class="btn btn-ghost btn-sm" *ngIf="!sess.includes('Current')">Revoke</button>
+            <span class="badge badge-success" *ngIf="sess.includes('Current')">Active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── NOTIFICATIONS ── -->
+      <div *ngIf="activeSection==='notifications'" class="settings-section">
+        <div class="section-header">
+          <h2 class="text-h2">Notification Preferences</h2>
+          <p style="color:var(--color-on-surface-variant);font-size:14px;">Choose how and when you receive HR alerts.</p>
+        </div>
+        <div class="notif-table">
+          <div class="notif-header">
+            <span style="flex:1;">Event</span>
+            <span class="notif-col-label">Email</span>
+            <span class="notif-col-label">In-App</span>
+          </div>
+          <div class="notif-row" *ngFor="let n of notifSettings">
+            <span style="flex:1;font-size:14px;">{{ n.label }}</span>
+            <div class="notif-col">
+              <label class="toggle-switch toggle-sm">
+                <input type="checkbox" [(ngModel)]="n.email" />
+                <span class="toggle-knob"></span>
+              </label>
+            </div>
+            <div class="notif-col">
+              <label class="toggle-switch toggle-sm">
+                <input type="checkbox" [(ngModel)]="n.inApp" />
+                <span class="toggle-knob"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="section-footer">
+          <button class="btn btn-primary" (click)="save()">Save Preferences</button>
+        </div>
+      </div>
+
+      <!-- ── INTEGRATIONS ── -->
+      <div *ngIf="activeSection==='integrations'" class="settings-section">
+        <div class="section-header">
+          <h2 class="text-h2">Integrations</h2>
+          <p style="color:var(--color-on-surface-variant);font-size:14px;">Connect HRMS Enterprise with your existing tools and workflows.</p>
+        </div>
+        <div class="integrations-grid">
+          <div class="integration-card" *ngFor="let integ of integrations; let i = index">
+            <div class="integ-icon" [style.background]="integ.color + '20'" [style.color]="integ.color">
+              <span class="material-symbols-outlined icon-filled">{{ integ.icon }}</span>
+            </div>
+            <div class="integ-info">
+              <h3 class="text-label-md">{{ integ.name }}</h3>
+              <p style="font-size:12px;color:var(--color-on-surface-variant);">{{ integ.desc }}</p>
+            </div>
+            <div class="integ-status">
+              <span class="badge" [class]="integ.connected ? 'badge-success' : 'badge-neutral'">
+                {{ integ.connected ? 'Connected' : 'Not Connected' }}
+              </span>
+              <button class="btn btn-sm" [class]="integ.connected ? 'btn-ghost' : 'btn-outline'" (click)="toggleIntegration(i)">
+                {{ integ.connected ? 'Disconnect' : 'Connect' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,126 @@
+<div class="login-page">
+
+  <!-- Decorative Background -->
+  <div class="login-bg">
+    <div class="bg-shape bg-shape-1"></div>
+    <div class="bg-shape bg-shape-2"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <!-- Top Bar -->
+  <header class="login-topbar">
+    <div class="login-brand">
+      <div class="login-brand-icon">
+        <span class="material-symbols-outlined icon-filled">corporate_fare</span>
+      </div>
+      <span class="login-brand-name">Enterprise HR</span>
+    </div>
+    <div class="login-topbar-actions">
+      <span class="login-topbar-text">Don't have an account?</span>
+      <a routerLink="/auth/register" class="btn btn-outline btn-sm">Create Account</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="login-main">
+    <div class="login-card card">
+
+      <!-- Card Header -->
+      <div class="login-card-header">
+        <h1 class="text-h1">Welcome Back</h1>
+        <p class="login-subtitle">Sign in to your HR Management Console to continue.</p>
+      </div>
+
+      <!-- Error Alert -->
+      <div class="alert-error" *ngIf="error" role="alert">
+        <span class="material-symbols-outlined">error_outline</span>
+        {{ error }}
+      </div>
+
+      <!-- Login Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate class="login-form">
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label" for="email">Work Email</label>
+          <input
+            id="email"
+            type="email"
+            class="form-input"
+            [class.form-input-error]="emailCtrl.invalid && emailCtrl.touched"
+            formControlName="email"
+            placeholder="you@company.com"
+            autocomplete="email"
+          />
+          <span class="form-error-text" *ngIf="emailCtrl.errors?.['required'] && emailCtrl.touched">
+            Email is required.
+          </span>
+          <span class="form-error-text" *ngIf="emailCtrl.errors?.['email'] && emailCtrl.touched">
+            Please enter a valid email address.
+          </span>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <div class="label-row">
+            <label class="form-label" for="password">Password</label>
+            <a routerLink="/auth/reset-password" class="forgot-link">Forgot password?</a>
+          </div>
+          <div class="password-wrapper">
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              class="form-input"
+              [class.form-input-error]="passwordCtrl.invalid && passwordCtrl.touched"
+              formControlName="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="showPassword = !showPassword"
+              [title]="showPassword ? 'Hide password' : 'Show password'"
+            >
+              <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+          <span class="form-error-text" *ngIf="passwordCtrl.errors?.['required'] && passwordCtrl.touched">
+            Password is required.
+          </span>
+          <span class="form-error-text" *ngIf="passwordCtrl.errors?.['minlength'] && passwordCtrl.touched">
+            Password must be at least 8 characters.
+          </span>
+        </div>
+
+        <!-- Remember Me -->
+        <div class="remember-row">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="rememberMe" class="checkbox-input" />
+            <span class="checkbox-custom"></span>
+            <span>Keep me signed in for 30 days</span>
+          </label>
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="btn btn-secondary btn-lg submit-btn"
+          [disabled]="loading"
+        >
+          <span class="spinner" *ngIf="loading"></span>
+          <span class="material-symbols-outlined" *ngIf="!loading">lock_open</span>
+          {{ loading ? 'Signing in…' : 'Sign In' }}
+        </button>
+      </form>
+
+      <!-- Footer note -->
+      <p class="login-footer-note">
+        Protected by enterprise-grade security. View our
+        <a href="#" target="_blank">Privacy Policy</a> &amp;
+        <a href="#" target="_blank">Terms of Service</a>.
+      </p>
+
+    </div>
+  </main>
+</div>

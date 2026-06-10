@@ -1,0 +1,115 @@
+<div class="auth-page">
+  <div class="auth-bg">
+    <div class="bg-blob-1"></div>
+    <div class="bg-blob-2"></div>
+  </div>
+  <header class="setup-topbar">
+    <div class="auth-brand">
+      <div class="brand-icon"><span class="material-symbols-outlined icon-filled">corporate_fare</span></div>
+      <span class="brand-name">HRMS Enterprise</span>
+    </div>
+    <nav class="setup-nav">
+      <a href="#" class="setup-nav-link">Security</a>
+      <a href="#" class="setup-nav-link">Support</a>
+    </nav>
+  </header>
+  <main class="setup-main">
+    <div class="setup-grid">
+      <div class="setup-context">
+        <div>
+          <span class="step-badge">Final Step</span>
+          <h1 class="text-display" style="margin-top:1rem;line-height:1.1;">Secure Your<br>Identity.</h1>
+          <p class="text-body-md" style="color:var(--color-on-surface-variant);margin-top:1rem;max-width:320px;">
+            Set up strong credentials and optionally enable multi-factor authentication.
+          </p>
+        </div>
+        <div class="security-features">
+          <div class="security-feature-item">
+            <span class="material-symbols-outlined icon-filled" style="color:var(--color-secondary);">verified_user</span>
+            <div>
+              <p class="text-label-md">Military-Grade Encryption</p>
+              <p style="font-size:13px;color:var(--color-on-surface-variant);">AES-256 standards for all stored credentials.</p>
+            </div>
+          </div>
+          <div class="security-feature-item">
+            <span class="material-symbols-outlined icon-filled" style="color:var(--color-secondary);">lock_reset</span>
+            <div>
+              <p class="text-label-md">Smart Strength Meter</p>
+              <p style="font-size:13px;color:var(--color-on-surface-variant);">Real-time analysis against known data breaches.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="setup-form-card card">
+        <div style="margin-bottom:1.5rem;">
+          <h2 class="text-h2">Security Credentials</h2>
+          <p style="color:var(--color-on-surface-variant);font-size:14px;margin-top:4px;">Setup your access credentials for HRMS Enterprise</p>
+        </div>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <div class="form-group" style="margin-bottom:1.25rem;">
+            <label class="form-label">New Password</label>
+            <div class="password-wrapper">
+              <input [type]="showPassword ? 'text' : 'password'" class="form-input" formControlName="password" placeholder="Create a strong password"/>
+              <button type="button" class="password-toggle" (click)="showPassword=!showPassword">
+                <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+              </button>
+            </div>
+            <div class="strength-section" *ngIf="passwordVal">
+              <div class="strength-label-row">
+                <span class="text-label-sm" style="color:var(--color-on-surface-variant);">Security Strength</span>
+                <span class="text-label-sm" [style.color]="strengthColor">{{ strengthLabel }}</span>
+              </div>
+              <div class="strength-bar-track">
+                <div class="strength-bar-fill" [style.width]="(passwordStrength / 4 * 100) + '%'" [style.background-color]="strengthColor"></div>
+              </div>
+              <ul class="password-rules">
+                <li [class.rule-pass]="hasMinLength()">
+                  <span class="material-symbols-outlined" style="font-size:14px;">{{ hasMinLength() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                  At least 8 characters
+                </li>
+                <li [class.rule-pass]="hasUppercase()">
+                  <span class="material-symbols-outlined" style="font-size:14px;">{{ hasUppercase() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                  One uppercase letter
+                </li>
+                <li [class.rule-pass]="hasNumber()">
+                  <span class="material-symbols-outlined" style="font-size:14px;">{{ hasNumber() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                  One number
+                </li>
+                <li [class.rule-pass]="hasSpecial()">
+                  <span class="material-symbols-outlined" style="font-size:14px;">{{ hasSpecial() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                  One special character
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:1.5rem;">
+            <label class="form-label">Confirm Password</label>
+            <div class="password-wrapper">
+              <input [type]="showConfirm ? 'text' : 'password'" class="form-input" formControlName="confirmPassword" placeholder="Repeat your password"/>
+              <button type="button" class="password-toggle" (click)="showConfirm=!showConfirm">
+                <span class="material-symbols-outlined">{{ showConfirm ? 'visibility_off' : 'visibility' }}</span>
+              </button>
+            </div>
+          </div>
+          <div class="mfa-toggle-card">
+            <div class="mfa-info">
+              <span class="material-symbols-outlined icon-filled" style="color:var(--color-secondary);">smartphone</span>
+              <div>
+                <p class="text-label-md">Enable Two-Factor Authentication</p>
+                <p style="font-size:12px;color:var(--color-on-surface-variant);">Highly recommended for admin accounts.</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="mfa"/>
+              <span class="toggle-knob"></span>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;padding:13px;margin-top:1.5rem;" [disabled]="loading">
+            <span *ngIf="!loading">Complete Setup <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">check</span></span>
+            <span *ngIf="loading" class="spinner"></span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>

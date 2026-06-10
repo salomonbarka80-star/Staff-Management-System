@@ -1,0 +1,205 @@
+<div class="register-page">
+  <div class="register-layout">
+
+    <!-- Left Panel: Branding + Progress -->
+    <aside class="register-left">
+      <div class="register-brand">
+        <div class="register-brand-icon">
+          <span class="material-symbols-outlined icon-filled">corporate_fare</span>
+        </div>
+        <span class="register-brand-name">Enterprise HR</span>
+      </div>
+
+      <div class="register-hero">
+        <h1 class="register-hero-title">Start your journey with efficiency.</h1>
+        <p class="register-hero-sub">Set up your organization's HR suite in minutes. No credit card required.</p>
+      </div>
+
+      <!-- Step progress -->
+      <div class="step-progress">
+        <div *ngFor="let s of steps; let i = index" class="step-item" [class.active]="step === i+1" [class.completed]="step > i+1">
+          <div class="step-indicator">
+            <span class="material-symbols-outlined step-check" *ngIf="step > i+1">check</span>
+            <span *ngIf="step <= i+1">{{ i+1 }}</span>
+          </div>
+          <div class="step-text">
+            <span class="step-label">Step {{ i+1 }}</span>
+            <span class="step-name">{{ s.label }}</span>
+          </div>
+          <div class="step-connector" *ngIf="i < steps.length - 1"></div>
+        </div>
+      </div>
+
+      <!-- Trust badges -->
+      <div class="trust-badges">
+        <div class="trust-item"><span class="material-symbols-outlined">verified_user</span> SOC 2 Certified</div>
+        <div class="trust-item"><span class="material-symbols-outlined">lock</span> GDPR Compliant</div>
+        <div class="trust-item"><span class="material-symbols-outlined">cloud_done</span> 99.9% Uptime SLA</div>
+      </div>
+    </aside>
+
+    <!-- Right Panel: Form -->
+    <main class="register-right">
+      <div class="register-form-card card">
+
+        <!-- Back to login -->
+        <a routerLink="/auth/login" class="back-link">
+          <span class="material-symbols-outlined">arrow_back</span>
+          Back to login
+        </a>
+
+        <!-- Step 1: Account Details -->
+        <div *ngIf="step === 1" class="form-step animate-fade-in">
+          <h2 class="text-h2">Account Details</h2>
+          <p class="step-subtitle">Tell us about yourself to get started.</p>
+
+          <form [formGroup]="step1Form" class="step-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-input" formControlName="firstName" placeholder="First name" />
+                <span class="form-error" *ngIf="step1Form.get('firstName')?.touched && step1Form.get('firstName')?.errors">{{ fieldError(step1Form, 'firstName') }}</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-input" formControlName="lastName" placeholder="Last name" />
+                <span class="form-error" *ngIf="step1Form.get('lastName')?.touched && step1Form.get('lastName')?.errors">{{ fieldError(step1Form, 'lastName') }}</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Work Email</label>
+              <input type="email" class="form-input" formControlName="email" placeholder="firstlastname@company.com" />
+              <span class="form-error" *ngIf="step1Form.get('email')?.touched && step1Form.get('email')?.errors">{{ fieldError(step1Form, 'email') }}</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Job Title</label>
+              <input type="text" class="form-input" formControlName="jobTitle" placeholder="e.g. HR Manager" />
+              <span class="form-error" *ngIf="step1Form.get('jobTitle')?.touched && step1Form.get('jobTitle')?.errors">{{ fieldError(step1Form, 'jobTitle') }}</span>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 2: Organization -->
+        <div *ngIf="step === 2" class="form-step animate-fade-in">
+          <h2 class="text-h2">Organization Setup</h2>
+          <p class="step-subtitle">Help us configure HRMS for your organization.</p>
+
+          <form [formGroup]="step2Form" class="step-form">
+            <div class="form-group">
+              <label class="form-label">Company Name</label>
+              <input type="text" class="form-input" formControlName="companyName" placeholder="Acme Corporation" />
+              <span class="form-error" *ngIf="step2Form.get('companyName')?.touched && step2Form.get('companyName')?.errors">{{ fieldError(step2Form, 'companyName') }}</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Company Size</label>
+              <select class="form-select" formControlName="companySize">
+                <option value="">Select company size</option>
+                <option value="1-50">1–50 employees</option>
+                <option value="51-200">51–200 employees</option>
+                <option value="201-500">201–500 employees</option>
+                <option value="501-2000">501–2,000 employees</option>
+                <option value="2001+">2,001+ employees</option>
+              </select>
+              <span class="form-error" *ngIf="step2Form.get('companySize')?.touched && step2Form.get('companySize')?.errors">{{ fieldError(step2Form, 'companySize') }}</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Industry</label>
+              <select class="form-select" formControlName="industry">
+                <option value="">Select industry</option>
+                <option value="tech">Technology</option>
+                <option value="finance">Financial Services</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="retail">Retail</option>
+                <option value="manufacturing">Manufacturing</option>
+                <option value="other">Other</option>
+              </select>
+              <span class="form-error" *ngIf="step2Form.get('industry')?.touched && step2Form.get('industry')?.errors">{{ fieldError(step2Form, 'industry') }}</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Country / Region</label>
+              <select class="form-select" formControlName="country">
+                <option value="">Select country</option>
+                <option value="US">United States</option>
+                <option value="GB">United Kingdom</option>
+                <option value="CA">Canada</option>
+                <option value="DE">Germany</option>
+                <option value="FR">France</option>
+                <option value="AU">Australia</option>
+                <option value="JP">Japan</option>
+                <option value="other">Other</option>
+              </select>
+              <span class="form-error" *ngIf="step2Form.get('country')?.touched && step2Form.get('country')?.errors">{{ fieldError(step2Form, 'country') }}</span>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 3: Security -->
+        <div *ngIf="step === 3" class="form-step animate-fade-in">
+          <h2 class="text-h2">Secure Your Identity</h2>
+          <p class="step-subtitle">Create a strong password for your admin account.</p>
+
+          <form [formGroup]="step3Form" class="step-form">
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="password-wrapper">
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  class="form-input"
+                  formControlName="password"
+                  placeholder="Create a strong password"
+                />
+                <button type="button" class="password-toggle" (click)="showPassword = !showPassword">
+                  <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </div>
+              <span class="form-error" *ngIf="step3Form.get('password')?.touched && step3Form.get('password')?.errors">{{ fieldError(step3Form, 'password') }}</span>
+              <!-- Strength meter -->
+              <div class="strength-meter" *ngIf="step3Form.get('password')?.value">
+                <div class="strength-bar">
+                  <div class="strength-fill" [class]="strengthClass" [style.width.%]="passwordStrength * 25"></div>
+                </div>
+                <span class="strength-label" [class]="strengthClass">{{ strengthLabel }}</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm Password</label>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                class="form-input"
+                formControlName="confirmPassword"
+                placeholder="Repeat your password"
+              />
+              <span class="form-error" *ngIf="step3Form.get('confirmPassword')?.touched && step3Form.get('confirmPassword')?.errors">{{ fieldError(step3Form, 'confirmPassword') }}</span>
+            </div>
+            <div class="form-group"> 
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="agreeTerms" class="checkbox-input" />
+                <span class="checkbox-custom"></span>
+                I agree to the <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a>
+              </label>
+            </div>
+          </form>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="form-actions">
+          <button class="btn btn-outline" *ngIf="step > 1" (click)="prev()">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Back
+          </button>
+          <div class="actions-spacer"></div>
+          <button class="btn btn-secondary" *ngIf="step < totalSteps" (click)="next()">
+            Continue
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+          <button class="btn btn-secondary" *ngIf="step === totalSteps" (click)="onSubmit()" [disabled]="loading">
+            <span class="spinner" *ngIf="loading"></span>
+            {{ loading ? 'Creating account…' : 'Create Account' }}
+            <span class="material-symbols-outlined" *ngIf="!loading">check</span>
+          </button>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>

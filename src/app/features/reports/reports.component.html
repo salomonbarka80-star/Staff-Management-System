@@ -1,0 +1,257 @@
+<div class="reports-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="text-h1">Reports &amp; Analytics</h1>
+      <p class="text-body-sm" style="color:var(--color-on-surface-variant);margin-top:4px;">
+        Actionable insights across workforce, attendance, recruitment, and payroll.
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline btn-sm">
+        <span class="material-symbols-outlined">schedule</span> Scheduled (18)
+      </button>
+      <button class="btn btn-secondary btn-sm" (click)="openAddReport()">
+        <span class="material-symbols-outlined">add</span> Custom Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Metrics -->
+  <div class="quick-metrics">
+    <div class="qm-card" *ngFor="let m of quickMetrics">
+      <div class="qm-label">{{ m.label }}</div>
+      <div class="qm-value">{{ m.value }}</div>
+      <div class="qm-trend" [class.qm-up]="m.up">{{ m.trend }}</div>
+    </div>
+  </div>
+
+  <!-- Global Filters Bar -->
+  <div class="filters-bar card">
+    <div class="filters-left">
+      <span class="material-symbols-outlined" style="color:var(--color-on-surface-variant);">tune</span>
+      <span style="font-size:13px;font-weight:600;color:var(--color-on-surface-variant);">Filters:</span>
+    </div>
+    <div class="filters-right">
+      <select class="form-input filter-sm" [(ngModel)]="dateRange">
+        <option value="today">Today</option>
+        <option value="last_7">Last 7 days</option>
+        <option value="last_30">Last 30 days</option>
+        <option value="last_quarter">Last Quarter</option>
+        <option value="ytd">Year to Date</option>
+        <option value="custom">Custom Range</option>
+      </select>
+      <select class="form-input filter-sm" [(ngModel)]="selectedFormat">
+        <option value="PDF">PDF</option>
+        <option value="XLSX">Excel (XLSX)</option>
+        <option value="CSV">CSV</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Report Categories -->
+  <div class="report-categories-list">
+    <div class="report-category-block" *ngFor="let cat of reportCategories">
+
+      <!-- Category Header -->
+      <div class="cat-title-row">
+        <div class="cat-icon-wrap" [class]="'cat-wrap-' + cat.color">
+          <span class="material-symbols-outlined icon-filled">{{ cat.icon }}</span>
+        </div>
+        <h2 class="text-h3">{{ cat.title }}</h2>
+        <span class="cat-count">{{ cat.reports.length }} reports</span>
+      </div>
+
+      <!-- Report Cards Grid -->
+      <div class="report-cards-grid">
+        <div class="report-card" *ngFor="let r of cat.reports">
+          <div class="rc-top">
+            <div class="rc-icon-wrap" [class]="'rc-icon-wrap-' + cat.color">
+              <span class="material-symbols-outlined icon-filled">{{ r.icon }}</span>
+            </div>
+            <div class="rc-meta" *ngIf="r.lastRun">
+              <span class="material-symbols-outlined" style="font-size:13px;color:var(--color-outline);">history</span>
+              <span style="font-size:11px;color:var(--color-on-surface-variant);">{{ r.lastRun }}</span>
+            </div>
+            <button class="btn btn-ghost btn-sm btn-icon rc-delete-btn" (click)="deleteReport(cat, r, $event)" title="Delete report">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
+
+          <div class="rc-name">{{ r.name }}</div>
+          <div class="rc-desc">{{ r.desc }}</div>
+
+          <div class="rc-footer">
+            <span class="format-badge" [class]="'fmt-' + r.format.toLowerCase()">{{ r.format }}</span>
+            <div class="rc-actions">
+              <button class="btn btn-sm rc-schedule-btn" (click)="openSchedule(r, $event)" title="Schedule report">
+                <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
+              </button>
+              <button class="btn btn-secondary btn-sm rc-run-btn" (click)="runReport(r)">
+                <span class="material-symbols-outlined" style="font-size:14px;">play_arrow</span> Run
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ RUN REPORT OVERLAY ═══════════════ -->
+<div class="modal-overlay" *ngIf="selectedReport" (click)="closeOverlay()">
+  <div class="run-modal card" (click)="$event.stopPropagation()">
+
+    <!-- Running state -->
+    <div *ngIf="runState === 'running'" class="run-state">
+      <div class="run-spinner">
+        <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" stroke-width="4"/>
+          <circle cx="22" cy="22" r="18" fill="none" stroke="var(--color-secondary)" stroke-width="4"
+            stroke-dasharray="28 85" stroke-linecap="round">
+            <animateTransform attributeName="transform" type="rotate"
+              from="0 22 22" to="360 22 22" dur="1s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+      </div>
+      <h3 class="text-h3" style="margin-top:20px;">Generating Report</h3>
+      <p style="color:var(--color-on-surface-variant);font-size:14px;margin-top:6px;">{{ selectedReport!.name }}</p>
+      <div class="run-steps">
+        <div class="run-step active"><span class="material-symbols-outlined icon-filled" style="font-size:16px;color:var(--color-secondary);">check_circle</span> Fetching data</div>
+        <div class="run-step active"><span class="material-symbols-outlined icon-filled" style="font-size:16px;color:var(--color-secondary);">check_circle</span> Applying filters</div>
+        <div class="run-step loading"><span class="step-dot"></span> Rendering {{ selectedFormat }}</div>
+      </div>
+    </div>
+
+    <!-- Done state -->
+    <div *ngIf="runState === 'done'" class="run-state">
+      <div class="run-done-icon">
+        <span class="material-symbols-outlined icon-filled" style="font-size:48px;color:var(--color-success);">check_circle</span>
+      </div>
+      <h3 class="text-h3" style="margin-top:16px;">Report Ready!</h3>
+      <p style="color:var(--color-on-surface-variant);font-size:14px;margin-top:6px;">{{ selectedReport!.name }}</p>
+      <div style="display:flex;gap:10px;margin-top:24px;">
+        <button class="btn btn-secondary" style="gap:6px;" (click)="downloadReport()">
+          <span class="material-symbols-outlined" style="font-size:16px;">download</span>
+          Download {{ selectedFormat }}
+        </button>
+        <button class="btn btn-outline" (click)="closeOverlay()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SCHEDULE MODAL ═══════════════ -->
+<div class="modal-overlay" *ngIf="scheduleModal" (click)="scheduleModal = false">
+  <div class="modal-panel card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="text-h3">Schedule Report</h3>
+      <button class="btn btn-ghost btn-sm btn-icon" (click)="scheduleModal = false">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="scheduleReport">
+      <div class="schedule-report-info">
+        <span class="material-symbols-outlined icon-filled" style="color:var(--color-secondary);">{{ scheduleReport.icon }}</span>
+        <div>
+          <p style="font-weight:600;font-size:14px;">{{ scheduleReport.name }}</p>
+          <p style="font-size:12px;color:var(--color-on-surface-variant);">{{ scheduleReport.desc }}</p>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:16px;">
+        <label class="form-label">Frequency</label>
+        <div class="freq-options">
+          <label *ngFor="let f of ['daily','weekly','monthly','quarterly']"
+            class="freq-option" [class.selected]="scheduleFreq === f">
+            <input type="radio" [(ngModel)]="scheduleFreq" [value]="f" style="display:none;"/>
+            {{ f | titlecase }}
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Recipients</label>
+        <input type="email" class="form-input" placeholder="hr@company.com, ceo@company.com" />
+        <p style="font-size:12px;color:var(--color-on-surface-variant);margin-top:4px;">Separate multiple emails with commas.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Format</label>
+        <select class="form-input" [(ngModel)]="selectedFormat">
+          <option value="PDF">PDF</option>
+          <option value="XLSX">Excel (XLSX)</option>
+          <option value="CSV">CSV</option>
+        </select>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="scheduleModal = false">Cancel</button>
+        <button class="btn btn-secondary" (click)="confirmSchedule()">
+          <span class="material-symbols-outlined" style="font-size:16px;">schedule</span>
+          Save Schedule
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ADD REPORT MODAL ═══════════════ -->
+<div class="modal-overlay" *ngIf="showAddReportModal" (click)="showAddReportModal = false">
+  <div class="modal-panel card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="text-h3">Create Custom Report</h3>
+      <button class="btn btn-ghost btn-sm btn-icon" (click)="showAddReportModal = false">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Report Name</label>
+        <input type="text" class="form-input" [(ngModel)]="newReport.name" placeholder="e.g. Q4 Performance Audit" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" [(ngModel)]="newReport.desc" placeholder="Briefly describe what this report covers..." rows="3"></textarea>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-input" [(ngModel)]="newReport.category">
+            <option *ngFor="let cat of reportCategories" [value]="cat.title">{{ cat.title }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Default Format</label>
+          <select class="form-input" [(ngModel)]="newReport.format">
+            <option value="PDF">PDF</option>
+            <option value="XLSX">Excel (XLSX)</option>
+            <option value="CSV">CSV</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Icon</label>
+        <div class="icon-selector">
+          <label *ngFor="let icon of ['bar_chart', 'trending_up', 'analytics', 'description', 'assignment', 'pie_chart']" 
+                 class="icon-option" [class.selected]="newReport.icon === icon">
+            <input type="radio" [(ngModel)]="newReport.icon" [value]="icon" style="display:none;"/>
+            <span class="material-symbols-outlined">{{ icon }}</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="showAddReportModal = false">Cancel</button>
+        <button class="btn btn-secondary" (click)="saveReport()" [disabled]="!newReport.name || !newReport.desc">
+          <span class="material-symbols-outlined">add</span>
+          Create Report
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

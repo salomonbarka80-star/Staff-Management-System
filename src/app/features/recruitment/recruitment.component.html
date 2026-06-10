@@ -1,0 +1,437 @@
+<div class="recruitment-page" *ngIf="!loading; else loadTpl">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="text-h1">Talent Acquisition</h1>
+      <p class="text-body-sm" style="color:var(--color-on-surface-variant);margin-top:4px;">
+        End-to-end applicant tracking from requisition to offer.
+      </p>
+    </div>
+    <div class="header-actions">
+     
+      <button class="btn btn-secondary btn-sm" (click)="showAddReqModal = true">
+        <span class="material-symbols-outlined">add</span> New Requisition
+      </button>
+      <button class="btn btn-outline btn-sm" (click)="showAddCandModal = true">
+        <span class="material-symbols-outlined">person_add</span> Add Candidate
+      </button>
+    </div>
+  </div>
+
+  <!-- ATS Metrics -->
+  <div class="ats-metrics-grid">
+    <div class="ats-metric-card" *ngFor="let m of ats_metrics" [class]="'metric-' + m.color">
+      <div class="metric-icon" [class]="'icon-' + m.color">
+        <span class="material-symbols-outlined icon-filled">{{ m.icon }}</span>
+      </div>
+      <div>
+        <div class="metric-value">{{ m.value }}</div>
+        <div class="metric-label">{{ m.label }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-nav">
+    <button class="tab-btn" [class.active]="activeTab==='kanban'" (click)="activeTab='kanban'">
+      <span class="material-symbols-outlined" style="font-size:16px;">view_kanban</span> Pipeline Board
+    </button>
+    <button class="tab-btn" [class.active]="activeTab==='jobs'" (click)="activeTab='jobs'">
+      <span class="material-symbols-outlined" style="font-size:16px;">work</span> Job Requisitions
+    </button>
+    <button class="tab-btn" [class.active]="activeTab==='list'" (click)="activeTab='list'">
+      <span class="material-symbols-outlined" style="font-size:16px;">list</span> All Candidates
+    </button>
+  </div>
+
+  <!-- KANBAN BOARD -->
+  <div *ngIf="activeTab==='kanban'">
+    <div class="kanban-toolbar">
+      <div class="search-input-wrapper" style="width:280px;">
+        <span class="search-icon material-symbols-outlined">search</span>
+        <input class="form-input" placeholder="Search candidates…" [(ngModel)]="searchQuery" />
+      </div>
+      <select class="form-input filter-select" [(ngModel)]="selectedReqId" (ngModelChange)="onReqFilter()">
+        <option value="">All Requisitions</option>
+        <option *ngFor="let r of requisitions" [value]="r.id">{{ r.title }}</option>
+      </select>
+    </div>
+
+    <div class="kanban-board">
+      <div class="kanban-column" *ngFor="let col of columns">
+        <div class="kanban-col-header">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="stage-dot" [style.background]="col.color"></div>
+            <h4>{{ col.label }}</h4>
+          </div>
+          <span class="kanban-count">{{ col.candidates.length }}</span>
+        </div>
+        <div class="kanban-cards">
+          <div class="kanban-card candidate-card" *ngFor="let c of col.candidates" (click)="openCandidate(c)">
+            <div class="card-candidate-header">
+              <div class="cand-avatar">{{ initials(c) }}</div>
+              <div class="cand-info">
+                <div class="cand-name">{{ c.firstName }} {{ c.lastName }}</div>
+                <div class="cand-pos">{{ c.position }}</div>
+              </div>
+            </div>
+            <div class="card-candidate-meta">
+              <span class="meta-chip">
+                <span class="material-symbols-outlined" style="font-size:12px;">hub</span>
+                {{ c.source }}
+              </span>
+              <span class="meta-chip date-chip">{{ c.appliedDate | date:'MMM d' }}</span>
+            </div>
+            <div *ngIf="c.rating" class="cand-rating">
+              <span ngFor="let s of stars(c.rating)" class="material-symbols-outlined icon-filled star-icon">star</span>
+              <span ngFor="let s of stars(5 - (c.rating || 0))" class="material-symbols-outlined star-icon star-empty">star</span>
+            </div>
+          </div>
+          <div *ngIf="col.candidates.length === 0" class="kanban-empty">
+            <span class="material-symbols-outlined" style="font-size:28px;color:var(--color-outline);">inbox</span>
+            <span>No candidates</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOB REQUISITIONS -->
+  <div *ngIf="activeTab==='jobs'" class="card">
+    <div class="card-header">
+      <h3>Job Requisitions</h3>
+      <div class="search-input-wrapper" style="width:260px;">
+        <span class="search-icon material-symbols-outlined">search</span>
+        <input class="form-input" placeholder="Search positions…" [(ngModel)]="searchQuery" />
+      </div>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Position</th>
+            <th>Department</th>
+            <th>Location</th>
+            <th>Type</th>
+            <th>Applicants</th>
+            <th>Status</th>
+            <th>Posted</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of filteredReqs">
+            <td>
+              <div style="font-weight:600;font-size:13px;">{{ r.title }}</div>
+              <div style="font-size:11px;color:var(--color-on-surface-variant);">{{ r.hiringManager }}</div>
+            </td>
+            <td style="font-size:13px;">{{ r.department }}</td>
+            <td style="font-size:13px;">
+              <span style="display:flex;align-items:center;gap:4px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">location_on</span>
+                {{ r.location }}
+              </span>
+            </td>
+            <td><span class="badge badge-primary">{{ r.type | titlecase }}</span></td>
+            <td>
+              <div class="applicant-bar-wrap">
+                <span style="font-weight:600;font-size:13px;">{{ r.applicantCount }}</span>
+                <div class="mini-bar"><div class="mini-bar-fill" [style.width]="(r.applicantCount / 70 * 100) + '%'"></div></div>
+              </div>
+            </td>
+            <td><span class="badge" [class]="reqStatus(r.status)">{{ r.status | titlecase }}</span></td>
+            <td style="font-size:12px;color:var(--color-on-surface-variant);">{{ r.postedDate | date:'MMM d, y' }}</td>
+            <td>
+              <button class="btn btn-ghost btn-sm">
+                <span class="material-symbols-outlined">more_vert</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ALL CANDIDATES -->
+  <div *ngIf="activeTab==='list'" class="card">
+    <div class="card-header">
+      <h3>All Candidates</h3>
+      <span class="badge badge-neutral">{{ allCandidates.length }} total</span>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Position</th>
+            <th>Stage</th>
+            <th>Source</th>
+            <th>Rating</th>
+            <th>Applied</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of allCandidates" (click)="openCandidate(c)" style="cursor:pointer;">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="cand-avatar cand-avatar-sm">{{ initials(c) }}</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;">{{ c.firstName }} {{ c.lastName }}</div>
+                  <div style="font-size:11px;color:var(--color-on-surface-variant);">{{ c.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:13px;">{{ c.position }}</td>
+            <td>
+              <span class="stage-badge" [class]="'stage-' + c.stage">{{ c.stage | titlecase }}</span>
+            </td>
+            <td style="font-size:13px;">{{ c.source }}</td>
+            <td>
+              <div class="star-row" *ngIf="c.rating">
+                <span *ngFor="let s of stars(c.rating)" class="material-symbols-outlined icon-filled" style="font-size:13px;color:#f59e0b;">star</span>
+              </div>
+              <span *ngIf="!c.rating" style="color:var(--color-outline);font-size:12px;">—</span>
+            </td>
+            <td style="font-size:12px;color:var(--color-on-surface-variant);">{{ c.appliedDate | date:'MMM d, y' }}</td>
+            <td>
+              <button class="btn btn-secondary btn-sm" (click)="$event.stopPropagation()">Review</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Candidate Detail Flyout -->
+<div class="modal-overlay" *ngIf="selectedCandidate" (click)="closeCandidate()">
+  <div class="modal-dialog cand-detail-panel" style="max-width:500px;" (click)="$event.stopPropagation()">
+    <div class="detail-header">
+      <div class="detail-avatar">{{ initials(selectedCandidate || null) }}</div>
+      <div class="detail-info">
+        <h2 class="text-h2">{{ selectedCandidate.firstName }} {{ selectedCandidate.lastName }}</h2>
+        <p style="color:var(--color-on-surface-variant);font-size:14px;">{{ selectedCandidate.position }}</p>
+        <span class="stage-badge" [class]="'stage-' + (selectedCandidate.stage || '')" style="margin-top:6px;">
+          {{ selectedCandidate.stage | titlecase }}
+        </span>
+      </div>
+      <button class="btn btn-ghost btn-icon" (click)="closeCandidate()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+      <div class="detail-field">
+        <span class="detail-label">Email</span>
+        <span>{{ selectedCandidate.email }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Source</span>
+        <span>{{ selectedCandidate.source }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Applied</span>
+        <span>{{ selectedCandidate.appliedDate | date:'MMMM d, y' }}</span>
+      </div>
+      <div class="detail-field" *ngIf="selectedCandidate.rating">
+        <span class="detail-label">Rating</span>
+        <div class="star-row">
+          <span *ngFor="let s of stars(selectedCandidate.rating)" class="material-symbols-outlined icon-filled" style="font-size:18px;color:#f59e0b;">star</span>
+        </div>
+      </div>
+      <div class="detail-actions">
+        <button class="btn btn-primary" style="flex:1;" (click)="showScheduleModal = true">Schedule Interview</button>
+        <select class="form-input" style="flex:1;" (change)="moveStage(selectedCandidate!, $any($event.target).value)">
+          <option value="">Move Stage</option>
+          <option value="screening">Screening</option>
+          <option value="interview">Interview</option>
+          <option value="assessment">Assessment</option>
+          <option value="offer">Offer</option>
+          <option value="hired">Hired</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDULE INTERVIEW MODAL -->
+<div class="modal-overlay" *ngIf="showScheduleModal" (click)="showScheduleModal=false">
+  <div class="modal-dialog" (click)="$event.stopPropagation()" style="max-width:500px;">
+    <div class="modal-header">
+      <h2 class="text-h2">Schedule Interview</h2>
+      <button class="btn btn-ghost btn-icon" (click)="showScheduleModal=false">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form #interviewForm="ngForm" (ngSubmit)="submitInterview(interviewForm.value)"
+          style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Interviewer</label>
+        <input class="form-input" name="interviewer" required ngModel placeholder="e.g. John Doe" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date & Time</label>
+          <input class="form-input" name="interviewDate" type="datetime-local" required ngModel />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Interview Type</label>
+          <select class="form-input" name="interviewType" required ngModel="video">
+            <option value="phone">Phone Screening</option>
+            <option value="video">Video Interview</option>
+            <option value="on-site">On-Site Interview</option>
+            <option value="technical">Technical Assessment</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location / Link</label>
+        <input class="form-input" name="location" ngModel placeholder="Office Room" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Internal Notes</label>
+        <textarea class="form-input" name="notes" rows="3" ngModel placeholder="What should the interviewer focus on?"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="showScheduleModal=false">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="!interviewForm.valid">
+          <span class="material-symbols-outlined">calendar_today</span> Confirm Schedule
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADD REQUISITION MODAL -->
+<div class="modal-overlay" *ngIf="showAddReqModal" (click)="showAddReqModal=false">
+  <div class="modal-dialog" (click)="$event.stopPropagation()" style="max-width:560px;">
+    <div class="modal-header">
+      <h2 class="text-h2">New Job Requisition</h2>
+      <button class="btn btn-ghost btn-icon" (click)="showAddReqModal=false">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form #reqForm="ngForm" (ngSubmit)="submitRequisition(reqForm.value)"
+          style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Job Title</label>
+          <input class="form-input" name="title" required ngModel placeholder="Senior Developer" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <input class="form-input" name="department" required ngModel placeholder="Engineering" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input class="form-input" name="location" required ngModel placeholder="Yaoundé" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Employment Type</label>
+          <select class="form-input" name="employmentType" required ngModel>
+            <option value="full-time">Full Time</option>
+            <option value="part-time">Part Time</option>
+            <option value="contractor">Contractor</option>
+            <option value="intern">Intern</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Hiring Manager</label>
+          <input class="form-input" name="hiringManager" required ngModel />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-input" name="status" ngModel="draft">
+            <option value="draft">Draft</option>
+            <option value="open">Open</option>
+            <option value="on-hold">On Hold</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="showAddReqModal=false">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="!reqForm.valid">
+          <span class="material-symbols-outlined">save</span> Create Requisition
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADD CANDIDATE MODAL -->
+<div class="modal-overlay" *ngIf="showAddCandModal" (click)="showAddCandModal=false">
+  <div class="modal-dialog" (click)="$event.stopPropagation()" style="max-width:560px;">
+    <div class="modal-header">
+      <h2 class="text-h2">Add Candidate</h2>
+      <button class="btn btn-ghost btn-icon" (click)="showAddCandModal=false">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form #candForm="ngForm" (ngSubmit)="submitCandidate(candForm.value)"
+          style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input class="form-input" name="firstName" required ngModel />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input class="form-input" name="lastName" required ngModel />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" name="email" required ngModel />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Position</label>
+          <input class="form-input" name="position" required ngModel />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input class="form-input" name="phone" ngModel />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Requisition</label>
+          <select class="form-input" name="requisitionId" required ngModel>
+            <option value="">Select Requisition</option>
+            <option *ngFor="let r of requisitions" [value]="r.id">{{ r.title }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Source</label>
+          <select class="form-input" name="source" ngModel="Direct">
+            <option value="Direct">Direct</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Indeed">Indeed</option>
+            <option value="Referral">Referral</option>
+            <option value="Agency">Agency</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="showAddCandModal=false">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="!candForm.valid">
+          <span class="material-symbols-outlined">person_add</span> Add Candidate
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<ng-template #loadTpl>
+  <div class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Loading recruitment data…</p>
+  </div>
+</ng-template>

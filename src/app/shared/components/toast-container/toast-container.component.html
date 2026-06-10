@@ -1,0 +1,11 @@
+<div class="toast-container">
+  <div
+    *ngFor="let toast of toasts"
+    class="toast toast-{{ toast.type }}"
+    [class.toast-removing]="toast.removing"
+    (click)="dismiss(toast)"
+  >
+    <span class="material-symbols-outlined">{{ iconFor(toast.type) }}</span>
+    <span>{{ toast.message }}</span>
+  </div>
+</div>

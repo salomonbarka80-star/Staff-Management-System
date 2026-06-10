@@ -1,0 +1,123 @@
+<header class="topbar" (click)="$event.stopPropagation()">
+   
+
+  
+  <!-- Left: Hamburger + Search -->
+  <div class="topbar-left">
+    <button class="hamburger-btn" [class.is-open]="mobileSidebarOpen || !sidebarCollapsed" (click)="onMenuToggle()" aria-label="Toggle menu" title="Toggle menu">
+      <span class="material-symbols-outlined icon-transition">{{ hamburgerIcon }}</span>
+    </button>
+    <button class="search-toggle-btn" (click)="toggleSearch()" aria-label="Toggle search" title="Search">
+      <span class="material-symbols-outlined">search</span>
+    </button>
+    <div class="search-input-wrapper search-bar" [class.search-expanded]="searchExpanded">
+      <span class="search-icon material-symbols-outlined">search</span>
+      <input
+        type="text"
+        class="form-input"
+        placeholder="Search employees, records, or files..."
+        [value]="searchQuery"
+        (input)="onSearch($event)"
+        aria-label="Global search"
+      />
+    </div>
+  </div>
+
+  <!-- Right: Actions + Profile -->
+  <div class="topbar-right">
+    <!-- Quick actions -->
+    <button class="icon-action-btn" title="Add Employee" (click)="navigateTo('/app/employees')">
+      <span class="material-symbols-outlined">person_add</span>
+    </button>
+
+    <div class="topbar-divider"></div>
+
+    <!-- Notifications -->
+    <div class="dropdown-host" (click)="toggleNotifications()">
+      <button class="icon-action-btn notif-btn" [class.active]="showNotifications" title="Notifications">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </button>
+
+      <!-- Notification Dropdown -->
+      <div class="dropdown-panel notif-panel" *ngIf="showNotifications" (click)="$event.stopPropagation()">
+        <div class="dropdown-header">
+          <span class="dropdown-title">Notifications</span>
+          <button class="btn btn-ghost btn-sm" (click)="markAllRead()">Mark all read</button>
+        </div>
+
+        <div class="notif-list">
+          <div
+            *ngFor="let notif of notifications"
+            class="notif-item"
+            [class.unread]="!notif.read"
+            (click)="navigateTo(notif.link, notif.id)"
+          >
+            <div class="notif-dot" [class]="'notif-dot-' + notif.type"></div>
+            <div class="notif-content">
+              <div class="notif-title">{{ notif.title }}</div>
+              <div class="notif-message">{{ notif.message }}</div>
+              <div class="notif-time">{{ notif.createdAt }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dropdown-footer">
+          <a class="view-all-link" (click)="navigateTo('/app/notifications')">
+            View all notifications
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help -->
+    <button class="icon-action-btn" title="Help & Support" (click)="navigateTo('/app/support')">
+      <span class="material-symbols-outlined">help_outline</span>
+    </button>
+
+    <div class="topbar-divider"></div>
+
+    <!-- User Menu -->
+    <div class="dropdown-host" (click)="toggleUserMenu()">
+      <div class="user-trigger" [class.active]="showUserMenu" *ngIf="currentUser">
+        <div class="user-text">
+          <span class="user-fullname">{{ currentUser.firstName }} {{ currentUser.lastName }}</span>
+          <span class="user-role">{{ currentUser.jobTitle }}</span>
+        </div>
+        <div class="avatar avatar-md user-avatar">
+          <img *ngIf="currentUser.avatarUrl" [src]="currentUser.avatarUrl" [alt]="currentUser.firstName" />
+          <span *ngIf="!currentUser.avatarUrl">{{ userInitials }}</span>
+        </div>
+      </div>
+
+      <!-- User Dropdown -->
+      <div class="dropdown-panel user-panel" *ngIf="showUserMenu" (click)="$event.stopPropagation()">
+        <div class="user-panel-header" *ngIf="currentUser">
+          <div class="avatar avatar-lg">
+            <span>{{ userInitials }}</span>
+          </div>
+          <div>
+            <div class="user-panel-name">{{ currentUser.firstName }} {{ currentUser.lastName }}</div>
+            <div class="user-panel-email">{{ currentUser.email }}</div>
+            <span class="badge badge-info" style="margin-top:4px;">{{ currentUser.role }}</span>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" (click)="navigateTo('/app/profile')">
+          <span class="material-symbols-outlined">person</span> My Profile
+        </a>
+        <a class="dropdown-item" (click)="navigateTo('/app/settings')">
+          <span class="material-symbols-outlined">settings</span> Settings
+        </a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item text-error" (click)="logout()">
+          <span class="material-symbols-outlined">logout</span> Log Out
+        </a>
+      </div>
+    </div>
+  </div>
+
+</header>
+
+<!-- Overlay to close dropdowns -->
+<div class="topbar-overlay" *ngIf="showNotifications || showUserMenu" (click)="closeDropdowns()"></div>

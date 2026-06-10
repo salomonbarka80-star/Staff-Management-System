@@ -1,0 +1,339 @@
+<div class="payroll-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="text-h1">Payroll</h1>
+      <p class="text-body-sm" style="color:var(--color-on-surface-variant);margin-top:4px;">
+        Manage pay cycles, view compensation details, and run payroll for {{ filteredPayroll.length }} employees.
+      </p>
+    </div>
+    <div class="header-actions">
+      <select class="form-input" style="width:auto;min-width:140px;" [(ngModel)]="selectedPeriod">
+        <option *ngFor="let p of periods" [value]="p">{{ p }}</option>
+      </select>
+      <button class="btn btn-outline btn-sm">
+        <span class="material-symbols-outlined">download</span> Export CSV
+      </button>
+      <button class="btn btn-primary btn-sm" (click)="showAddModal = true">
+        <span class="material-symbols-outlined">add</span> Add Record
+      </button>
+      <button class="btn btn-secondary btn-sm" (click)="showRunModal = true">
+        <span class="material-symbols-outlined">send</span> Run Payroll
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="payroll-summary">
+    <div class="payroll-summary-card">
+      <div class="ps-icon ps-icon-green"><span class="material-symbols-outlined icon-filled">payments</span></div>
+      <div>
+        <div class="ps-value">{{ totalGross | number:'1.0-0' }}</div>
+        <div class="ps-label">Total Gross Pay</div>
+      </div>
+    </div>
+    <div class="payroll-summary-card">
+      <div class="ps-icon ps-icon-blue"><span class="material-symbols-outlined icon-filled">account_balance</span></div>
+      <div>
+        <div class="ps-value">{{ totalDeduct | number:'1.0-0' }}</div>
+        <div class="ps-label">Total Deductions</div>
+      </div>
+    </div>
+    <div class="payroll-summary-card">
+      <div class="ps-icon ps-icon-navy"><span class="material-symbols-outlined icon-filled">savings</span></div>
+      <div>
+        <div class="ps-value">{{ totalNet | number:'1.0-0' }}</div>
+        <div class="ps-label">Total Net Pay</div>
+      </div>
+    </div>
+    <div class="payroll-summary-card">
+      <div class="ps-icon ps-icon-amber"><span class="material-symbols-outlined icon-filled">pending_actions</span></div>
+      <div>
+        <div class="ps-value">{{ pendingCount }}</div>
+        <div class="ps-label">Pending</div>
+      </div>
+      <div *ngIf="pendingCount > 0" class="ps-alert">
+        <span class="material-symbols-outlined" style="font-size:14px;">warning</span> Needs run
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Progress Bar -->
+  <div class="card payroll-progress-card">
+    <div class="progress-header">
+      <div>
+        <p class="text-label-md">Payroll Completion — {{ selectedPeriod }}</p>
+        <p style="font-size:12px;color:var(--color-on-surface-variant);margin-top:2px;">
+          {{ paidCount }} of {{ filteredPayroll.length }} employees processed
+        </p>
+      </div>
+      <span class="pct-badge">{{ filteredPayroll.length ? (paidCount / filteredPayroll.length * 100 | number:'1.0-0') : 0 }}%</span>
+    </div>
+    <div class="progress" style="height:8px;margin-top:10px;">
+      <div class="progress-fill"
+        [style.width]="(filteredPayroll.length ? paidCount / filteredPayroll.length * 100 : 0) + '%'"
+        style="background:var(--color-success);">
+      </div>
+    </div>
+    <div class="progress-legend">
+      <span class="legend-dot" style="background:var(--color-success);"></span><span>Paid</span>
+      <span class="legend-dot" style="background:var(--color-secondary);"></span><span>Processed</span>
+      <span class="legend-dot" style="background:var(--color-warning);"></span><span>Pending</span>
+      <span class="legend-dot" style="background:var(--color-error);"></span><span>On Hold</span>
+    </div>
+  </div>
+
+  <!-- Payroll Register Table -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Payroll Register — {{ selectedPeriod }}</h3>
+      <div class="toolbar-right">
+        <div class="search-input-wrapper" style="width:220px;">
+          <span class="search-icon material-symbols-outlined">search</span>
+          <input class="form-input" placeholder="Search employee…" [(ngModel)]="searchQuery"/>
+        </div>
+        <select class="form-input" style="width:auto;min-width:130px;" [(ngModel)]="filterStatus">
+          <option value="">All Statuses</option>
+          <option *ngFor="let s of statuses" [value]="s">{{ s | titlecase }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0;overflow-x:auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Department</th>
+            <th style="text-align:right;">Gross</th>
+            <th style="text-align:right;">Deductions</th>
+            <th style="text-align:right;">Net Pay</th>
+            <th>Currency</th>
+            <th>Pay Date</th>
+            <th>Status</th>
+            <th style="text-align:center;">Payslip</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filteredPayroll" class="payroll-row" (click)="openPayslip(p)">
+            <td>
+              <div class="emp-cell">
+                <div class="pay-avatar">{{ p.initials }}</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;">{{ p.name }}</div>
+                  <div style="font-size:11px;color:var(--color-on-surface-variant);">{{ p.position }}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:13px;">{{ p.dept }}</td>
+            <td class="num-cell">{{ p.gross | number:'1.0-0' }}</td>
+            <td class="num-cell deduct-cell">−{{ p.deductions | number:'1.0-0' }}</td>
+            <td class="num-cell net-cell">{{ p.net | number:'1.0-0' }}</td>
+            <td><span class="currency-badge">{{ p.currency }}</span></td>
+            <td style="font-size:12px;color:var(--color-on-surface-variant);">{{ p.payDate }}</td>
+            <td><span class="badge" [class]="statusClass(p.status)">{{ p.status | titlecase }}</span></td>
+            <td style="text-align:center;">
+              <button class="btn btn-ghost btn-sm btn-icon" (click)="$event.stopPropagation(); openPayslip(p)" title="View Payslip">
+                <span class="material-symbols-outlined" style="font-size:18px;">receipt</span>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredPayroll.length === 0">
+            <td colspan="9">
+              <div class="empty-state" style="padding:2.5rem;">
+                <span class="material-symbols-outlined empty-icon">receipt_long</span>
+                <p>No payroll records found for this period.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PAYSLIP DRAWER -->
+<div class="modal-overlay" *ngIf="showPayslip && selectedEntry" (click)="closePayslip()">
+  <div class="payslip-drawer" (click)="$event.stopPropagation()">
+    <div class="payslip-header">
+      <div>
+        <p style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--color-on-surface-variant);margin-bottom:4px;">Payslip</p>
+        <h2 class="text-h2">{{ selectedEntry.period }}</h2>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm"><span class="material-symbols-outlined">download</span> PDF</button>
+        <button class="btn btn-ghost btn-sm btn-icon" (click)="closePayslip()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+    </div>
+    <div class="payslip-body">
+      <div class="payslip-emp-card">
+        <div class="payslip-avatar">{{ selectedEntry.initials }}</div>
+        <div>
+          <div style="font-size:16px;font-weight:700;">{{ selectedEntry.name }}</div>
+          <div style="font-size:13px;color:var(--color-on-surface-variant);">{{ selectedEntry.position }}</div>
+          <div style="font-size:12px;color:var(--color-on-surface-variant);margin-top:2px;">{{ selectedEntry.dept }}</div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <span class="badge" [class]="statusClass(selectedEntry.status || '')">{{ selectedEntry.status | titlecase }}</span>
+          <div style="font-size:12px;color:var(--color-on-surface-variant);margin-top:4px;">Pay date: {{ selectedEntry.payDate }}</div>
+        </div>
+      </div>
+      <div class="payslip-section">
+        <div class="payslip-section-title">Earnings</div>
+        <div class="payslip-line">
+          <span>Base Salary</span>
+          <span class="payslip-amount">{{ selectedEntry.currency }} {{ selectedEntry.gross | number:'1.0-0' }}</span>
+        </div>
+      </div>
+      <div class="payslip-section" *ngIf="(selectedEntry.breakdown?.length ?? 0) > 0">
+        <div class="payslip-section-title">Deductions</div>
+        <div class="payslip-line" *ngFor="let d of selectedEntry.breakdown">
+          <span>
+            {{ d.name }}
+            <span class="deduct-tag" [class.tag-tax]="d.type==='tax'" [class.tag-benefit]="d.type==='benefit'">
+              {{ deductionTypeLabel(d.type) }}
+            </span>
+          </span>
+          <span class="payslip-amount deduct-color">−{{ selectedEntry.currency }} {{ d.amount | number:'1.0-0' }}</span>
+        </div>
+        <div class="payslip-line" style="border-top:1px solid #f1f5f9;padding-top:10px;margin-top:6px;">
+          <span style="font-weight:600;">Total Deductions</span>
+          <span class="payslip-amount deduct-color" style="font-weight:700;">−{{ selectedEntry.currency }} {{ selectedEntry.deductions | number:'1.0-0' }}</span>
+        </div>
+      </div>
+      <div class="payslip-net">
+        <span style="font-size:14px;font-weight:600;">Net Pay</span>
+        <span class="net-amount">{{ selectedEntry.currency }} {{ selectedEntry.net | number:'1.0-0' }}</span>
+      </div>
+      <div class="payslip-ratio">
+        <div class="ratio-bar-track">
+          <div class="ratio-bar-net" [style.width]="(selectedEntry.net / selectedEntry.gross * 100) + '%'"></div>
+          <div class="ratio-bar-deduct" [style.width]="(selectedEntry.deductions / selectedEntry.gross * 100) + '%'"></div>
+        </div>
+        <div class="ratio-labels">
+          <span style="color:var(--color-success);">Net {{ (selectedEntry.net / selectedEntry.gross * 100) | number:'1.0-0' }}%</span>
+          <span style="color:var(--color-error);">Deductions {{ (selectedEntry.deductions / selectedEntry.gross * 100) | number:'1.0-0' }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RUN PAYROLL MODAL -->
+<div class="modal-overlay" *ngIf="showRunModal" (click)="!runningPayroll && (showRunModal = false)">
+  <div class="modal-panel card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="text-h3">Run Payroll — {{ selectedPeriod }}</h3>
+      <button class="btn btn-ghost btn-sm btn-icon" *ngIf="!runningPayroll" (click)="showRunModal = false">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="runSuccess" class="run-success">
+        <span class="material-symbols-outlined icon-filled" style="font-size:48px;color:var(--color-success);">check_circle</span>
+        <h3 class="text-h3" style="margin-top:12px;">Payroll Processed!</h3>
+        <p style="color:var(--color-on-surface-variant);font-size:14px;">All pending entries have been moved to Processed status.</p>
+      </div>
+      <div *ngIf="runningPayroll && !runSuccess" class="run-loading">
+        <div class="loading-spinner" style="width:40px;height:40px;border-width:3px;"></div>
+        <p style="margin-top:16px;font-weight:500;">Processing payroll…</p>
+        <p style="font-size:13px;color:var(--color-on-surface-variant);">Calculating deductions and initiating transfers</p>
+      </div>
+      <div *ngIf="!runningPayroll && !runSuccess">
+        <div class="run-summary-grid">
+          <div class="run-stat">
+            <div class="run-stat-value">{{ pendingCount }}</div>
+            <div class="run-stat-label">Employees to Process</div>
+          </div>
+          <div class="run-stat">
+            <div class="run-stat-value">{{ totalGross | number:'1.0-0' }}</div>
+            <div class="run-stat-label">Gross Payout</div>
+          </div>
+        </div>
+        <div class="run-warning">
+          <span class="material-symbols-outlined icon-filled" style="color:var(--color-warning);font-size:20px;">warning</span>
+          <p style="font-size:13px;">This will mark {{ pendingCount }} pending entries as <strong>Processed</strong> and initiate payment. This action cannot be easily undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" (click)="showRunModal = false">Cancel</button>
+          <button class="btn btn-secondary" (click)="runPayroll()" [disabled]="pendingCount === 0">
+            <span class="material-symbols-outlined" style="font-size:16px;">send</span>
+            Confirm & Run
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PAYROLL RECORD MODAL -->
+<div class="modal-overlay" *ngIf="showAddModal" (click)="showAddModal=false">
+  <div class="modal-dialog" (click)="$event.stopPropagation()" style="max-width:560px;">
+    <div class="modal-header">
+      <h2 class="text-h2">Add Payroll Record</h2>
+      <button class="btn btn-ghost btn-icon" (click)="showAddModal=false">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form #payrollForm="ngForm" (ngSubmit)="submitPayrollRecord(payrollForm.value)"
+          style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Employee</label>
+        <select class="form-input" name="employeeId" required ngModel>
+          <option value="">Select Employee</option>
+          <option *ngFor="let e of allEmployees" [value]="e.id">
+            {{ e.firstName }} {{ e.lastName }}
+          </option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Period</label>
+          <input class="form-input" name="period" placeholder="e.g. Nov 2024" required ngModel />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Currency</label>
+          <select class="form-input" name="currency" ngModel="USD">
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="XAF">XAF</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Gross Salary</label>
+          <input class="form-input" type="number" name="gross" required ngModel />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Net Salary</label>
+          <input class="form-input" type="number" name="net" required ngModel />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Pay Date</label>
+          <input class="form-input" type="date" name="payDate" required ngModel />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-input" name="status" ngModel="pending">
+            <option value="pending">Pending</option>
+            <option value="processed">Processed</option>
+            <option value="paid">Paid</option>
+            <option value="on-hold">On Hold</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="showAddModal=false">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="!payrollForm.valid">
+          <span class="material-symbols-outlined">save</span> Save Record
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

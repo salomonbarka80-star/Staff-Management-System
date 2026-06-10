@@ -1,0 +1,412 @@
+<div class="attendance-page" *ngIf="!loading; else loadTpl">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="text-h1">Time &amp; Attendance</h1>
+      <p class="text-body-sm" style="color:var(--color-on-surface-variant);margin-top:4px;">
+        Real-time tracking for {{ attendanceRecords.length }} employees today — {{ attendanceRate }}% attendance rate.
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline btn-sm">
+        <span class="material-symbols-outlined">download</span> Export
+      </button>
+      <button class="btn btn-secondary btn-sm" (click)="showRequestModal = true">
+        <span class="material-symbols-outlined">add</span> Request Leave
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+    <div class="summary-card" (click)="filterStatus=''; activeTab='today'">
+      <div class="summary-icon icon-green"><span class="material-symbols-outlined icon-filled">how_to_reg</span></div>
+      <div class="summary-body">
+        <div class="summary-value">{{ summaryStats.present }}</div>
+        <div class="summary-label">Present</div>
+      </div>
+      <div class="summary-rate">{{ attendanceRate }}%</div>
+    </div>
+    <div class="summary-card" (click)="filterStatus='absent'; activeTab='today'">
+      <div class="summary-icon icon-red"><span class="material-symbols-outlined icon-filled">person_off</span></div>
+      <div class="summary-body">
+        <div class="summary-value">{{ summaryStats.absent }}</div>
+        <div class="summary-label">Absent</div>
+      </div>
+    </div>
+    <div class="summary-card" (click)="filterStatus='late'; activeTab='today'">
+      <div class="summary-icon icon-amber"><span class="material-symbols-outlined icon-filled">schedule</span></div>
+      <div class="summary-body">
+        <div class="summary-value">{{ summaryStats.late }}</div>
+        <div class="summary-label">Late Arrivals</div>
+      </div>
+    </div>
+    <div class="summary-card" (click)="activeTab='leaves'">
+      <div class="summary-icon icon-blue"><span class="material-symbols-outlined icon-filled">event_busy</span></div>
+      <div class="summary-body">
+        <div class="summary-value">{{ pendingCount }}</div>
+        <div class="summary-label">Pending Leaves</div>
+      </div>
+      <div class="summary-rate" *ngIf="pendingCount > 0" style="background:var(--color-error-container);color:var(--color-error);">
+        {{ pendingCount }} to review
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-nav">
+    <button class="tab-btn" [class.active]="activeTab==='today'" (click)="activeTab='today'">
+      <span class="material-symbols-outlined">today</span> Today's Attendance
+    </button>
+    <button class="tab-btn" [class.active]="activeTab==='leaves'" (click)="activeTab='leaves'">
+      <span class="material-symbols-outlined">event_busy</span> Leave Requests
+      <span class="tab-badge" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab==='schedule'" (click)="activeTab='schedule'">
+      <span class="material-symbols-outlined">calendar_month</span> Weekly Schedule
+    </button>
+  </div>
+
+  <!-- ═══════════════════ TAB: TODAY'S ATTENDANCE ═══════════════════ -->
+  <div *ngIf="activeTab==='today'" class="card">
+    <div class="card-header">
+      <h3>Attendance Log — Today</h3>
+      <div class="toolbar-right">
+        <div class="search-input-wrapper" style="width:230px;">
+          <span class="search-icon material-symbols-outlined">search</span>
+          <input class="form-input" placeholder="Search employee…" [(ngModel)]="searchQuery"/>
+        </div>
+        <select class="form-input" style="width:auto;min-width:140px;" [(ngModel)]="filterStatus">
+          <option value="">All Statuses</option>
+          <option value="present">Present</option>
+          <option value="absent">Absent</option>
+          <option value="late">Late</option>
+          <option value="half-day">Half Day</option>
+        </select>
+      </div>
+    </div>
+    
+
+    <!-- Attendance Rate Bar -->
+    <div class="att-rate-banner">
+      <div class="att-rate-info">
+        <span style="font-size:13px;font-weight:600;">Overall Attendance Rate</span>
+        <span style="font-size:13px;font-weight:700;color:var(--color-success);">{{ attendanceRate }}%</span>
+      </div>
+      <div class="att-rate-track">
+        <div class="att-rate-fill" [style.width]="attendanceRate + '%'"></div>
+      </div>
+    </div>
+
+    <div class="card-body" style="padding:0;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Department</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Hours</th>
+            <th>Shift</th>
+            <th>Status</th>
+            <th>Actons</th>
+          
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of filteredRecords" [class.row-absent]="r.status === 'absent'">
+            <td>
+              
+              <div class="emp-cell">
+                <div class="att-avatar" [class.avatar-late]="r.status==='late'" [class.avatar-absent]="r.status==='absent'">
+                  {{ initials(r) }}
+                </div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;">{{ r.employee.firstName }} {{ r.employee.lastName }}</div>
+                  <div style="font-size:11px;color:var(--color-on-surface-variant);">{{ r.date }}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:13px;">{{ r.employee.department.name }}</td>
+            <td>
+              <span class="time-chip" [class.time-late]="r.status==='late'">
+                <span class="material-symbols-outlined" style="font-size:13px;">login</span>
+                {{ r.checkIn || '—' }}
+              </span>
+            </td>
+            <td>
+              <span class="time-chip">
+                <span class="material-symbols-outlined" style="font-size:13px;">logout</span>
+                {{ r.checkOut || '—' }}
+              </span>
+            </td>
+            <td>
+              <span *ngIf="r.totalHours" class="hours-badge">{{ r.totalHours }}h</span>
+              <span *ngIf="!r.totalHours" style="color:var(--color-outline);">—</span>
+            </td>
+            <td style="font-size:12px;color:var(--color-on-surface-variant);">
+              {{ r.shiftStart }} – {{ r.shiftEnd }}
+            </td>
+            <td>
+              <span class="badge" [class]="statusClass(r.status)">{{ r.status | titlecase }}</span>
+            </td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <button class="btn btn-ghost btn-sm" style="color:green"
+                  (click)="$event.stopPropagation(); markAttendance(+r.employee.id, 'present')"
+                  title="Present">
+                  <span class="material-symbols-outlined">check_circle</span>
+                </button>
+                <button class="btn btn-ghost btn-sm" style="color:orange"
+                  (click)="$event.stopPropagation(); markAttendance(+r.employee.id, 'late')"
+                  title="Late">
+                  <span class="material-symbols-outlined">schedule</span>
+                </button>
+                <button class="btn btn-ghost btn-sm" style="color:red"
+                  (click)="$event.stopPropagation(); markAttendance(+r.employee.id, 'absent')"
+                  title="Absent">
+                  <span class="material-symbols-outlined">cancel</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredRecords.length === 0">
+            <td colspan="7">
+              <div class="empty-state" style="padding:2.5rem;">
+                <span class="material-symbols-outlined empty-icon">search_off</span>
+                <p>No records match your filter.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ TAB: LEAVE REQUESTS ═══════════════════ -->
+  <div *ngIf="activeTab==='leaves'" class="card">
+    <div class="card-header">
+      <h3>Leave Requests</h3>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="badge badge-warning" *ngIf="pendingCount > 0">{{ pendingCount }} pending</span>
+        <select class="form-input" style="width:auto;min-width:140px;" [(ngModel)]="leaveFilterStatus">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Type</th>
+            <th>Dates</th>
+            <th>Duration</th>
+            <th>Reason</th>
+            <th>Submitted</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+         <tbody>
+          <tr *ngFor="let r of filteredRecords" [class.row-absent]="r.status === 'absent'">
+          <td>
+            <div class="emp-cell">
+              <div class="att-avatar" 
+                [class.avatar-late]="r.status==='late'" 
+                [class.avatar-absent]="r.status==='absent'">
+                {{ r.firstName[0] }}{{ r.lastName[0] }}
+              </div>
+              <div>
+                <div style="font-weight:600;font-size:13px;">{{ r.firstName }} {{ r.lastName }}</div>
+                <div style="font-size:11px;color:var(--color-on-surface-variant);">{{ r.date }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="font-size:13px;">{{ r.department?.name ?? '—' }}</td>
+          <td>
+            <span class="time-chip" [class.time-late]="r.status==='late'">
+              <span class="material-symbols-outlined" style="font-size:13px;">login</span>
+              {{ r.checkIn || '—' }}
+            </span>
+          </td>
+          <td>
+            <span class="time-chip">
+              <span class="material-symbols-outlined" style="font-size:13px;">logout</span>
+              {{ r.checkOut || '—' }}
+            </span>
+          </td>
+          <td>
+            <span *ngIf="r.totalHours" class="hours-badge">{{ r.totalHours }}h</span>
+            <span *ngIf="!r.totalHours" style="color:var(--color-outline);">—</span>
+          </td>
+          <td style="font-size:12px;color:var(--color-on-surface-variant);">
+            {{ r.shiftStart }} — {{ r.shiftEnd }}
+          </td>
+          <td>
+            <span class="badge" [class]="statusClass(r.status)">
+              {{ r.status === 'not-marked' ? 'Not Marked' : (r.status | titlecase) }}
+            </span>
+          </td>
+          <td>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-ghost btn-sm" style="color:green"
+          (click)="$event.stopPropagation(); markAttendance(r.employeeId, 'present')"
+          title="Present">
+          <span class="material-symbols-outlined">check_circle</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" style="color:orange"
+          (click)="$event.stopPropagation(); markAttendance(r.employeeId, 'late')"
+          title="Late">
+          <span class="material-symbols-outlined">schedule</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" style="color:red"
+          (click)="$event.stopPropagation(); markAttendance(r.employeeId, 'absent')"
+          title="Absent">
+          <span class="material-symbols-outlined">cancel</span>
+        </button>
+      </div>
+    </td>
+  </tr>
+  <tr *ngIf="filteredRecords.length === 0">
+    <td colspan="8">
+      <div class="empty-state" style="padding:2.5rem;">
+        <span class="material-symbols-outlined empty-icon">search_off</span>
+        <p>No employees found.</p>
+      </div>
+    </td>
+  </tr>
+         </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ TAB: WEEKLY SCHEDULE ═══════════════════ -->
+  <div *ngIf="activeTab==='schedule'" class="card">
+    <div class="card-header">
+      <h3>Weekly Schedule</h3>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-ghost btn-sm btn-icon"><span class="material-symbols-outlined">chevron_left</span></button>
+        <span style="font-size:13px;font-weight:600;min-width:200px;text-align:center;">{{ weekLabel }}</span>
+        <button class="btn btn-ghost btn-sm btn-icon"><span class="material-symbols-outlined">chevron_right</span></button>
+      </div>
+    </div>
+
+    <!-- Color legend -->
+    <div class="schedule-legend">
+      <span class="legend-item"><span class="legend-dot dot-default"></span> Regular Shift</span>
+      <span class="legend-item"><span class="legend-dot dot-green"></span> Company Event</span>
+      <span class="legend-item"><span class="legend-dot dot-amber"></span> Review Cycle</span>
+      <span class="legend-item"><span class="legend-dot dot-purple"></span> Training</span>
+    </div>
+
+    <div class="card-body" style="padding:0;overflow-x:auto;">
+      <div class="schedule-grid">
+        <!-- Header -->
+        <div class="schedule-time-col schedule-corner"></div>
+        <div class="schedule-day-header" *ngFor="let d of weekDays">
+          <span class="day-label">{{ d.label }}</span>
+          <span class="day-date">{{ d.date }}</span>
+        </div>
+
+        <!-- Hour rows -->
+        <ng-container *ngFor="let h of hours; let hi = index">
+          <div class="schedule-time-label">{{ h }}</div>
+          <ng-container *ngFor="let d of weekDays; let di = index">
+            <div class="schedule-cell" [class.cell-continuation]="isEventContinuation(di, hi)">
+              <ng-container *ngIf="getEventForCell(di, hi) as evt">
+                <div class="schedule-block" [class]="'block-' + evt.color"
+                     [style.height]="(evt.duration * 52 - 4) + 'px'">
+                  <span class="block-title">{{ evt.title }}</span>
+                </div>
+              </ng-container>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ LOADING ═══════════════════ -->
+<ng-template #loadTpl>
+  <div class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Loading attendance data…</p>
+  </div>
+</ng-template>
+
+<!-- ═══════════════════ REQUEST LEAVE MODAL ═══════════════════ -->
+<div class="modal-overlay" *ngIf="showRequestModal" (click)="closeModal($event)">
+  <div class="modal-panel card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="text-h3">Request Time Off</h3>
+      <button class="btn btn-ghost btn-sm btn-icon" (click)="showRequestModal = false">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="requestForm" (ngSubmit)="submitRequest()">
+
+        <div class="form-group">
+          <label class="form-label">Leave Type</label>
+          <div class="leave-type-grid">
+            <label *ngFor="let lt of leaveTypes" class="leave-type-option"
+              [class.selected]="requestForm.value.type === lt">
+              <input type="radio" formControlName="type" [value]="lt" style="display:none;" />
+              <span class="material-symbols-outlined icon-filled" style="font-size:18px;"
+                [style.color]="leaveTypeColors[lt]">circle</span>
+              {{ lt | titlecase }}
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Start Date *</label>
+            <input type="date" class="form-input" formControlName="startDate"
+              [class.form-input-error]="requestForm.get('startDate')?.invalid && requestForm.get('startDate')?.touched" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Date *</label>
+            <input type="date" class="form-input" formControlName="endDate"
+              [class.form-input-error]="requestForm.get('endDate')?.invalid && requestForm.get('endDate')?.touched" />
+          </div>
+        </div>
+
+        <!-- Computed days -->
+        <div class="computed-days" *ngIf="computedDays > 0">
+          <span class="material-symbols-outlined" style="font-size:16px;color:var(--color-secondary);">info</span>
+          <span>{{ computedDays }} working day{{ computedDays !== 1 ? 's' : '' }} will be deducted from your balance.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Reason <span style="color:var(--color-outline);">(optional)</span></label>
+          <textarea class="form-input" formControlName="reason" rows="3"
+            placeholder="Brief description of your leave request…" style="resize:vertical;"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="showRequestModal = false">Cancel</button>
+          <button type="submit" class="btn btn-secondary" [disabled]="submittingRequest">
+            <span *ngIf="!submittingRequest">
+              <span class="material-symbols-outlined" style="font-size:16px;">send</span> Submit Request
+            </span>
+            <span *ngIf="submittingRequest" class="spinner-sm"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SUCCESS TOAST ═══════════════════ -->
+<div class="toast toast-success" *ngIf="showSuccessToast">
+  <span class="material-symbols-outlined icon-filled">check_circle</span>
+  Leave request submitted successfully!
+</div>

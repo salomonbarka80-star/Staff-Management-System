@@ -1,0 +1,194 @@
+<div class="welcome-page">
+  <header class="topbar">
+    <a class="brand" href="/welcome">HRMS Enterprise</a>
+
+    <nav class="main-nav" aria-label="Primary navigation">
+      <a href="#security">Security</a>
+      <a href="#support">Support</a>
+      <a href="#resources">Resources</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="link-button" type="button" (click)="signIn()">Sign In</button>
+      <button class="dark-button nav-cta" type="button" (click)="getStarted()">Get Started</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-section">
+      <div class="hero-copy">
+        <div class="release-pill">
+          <span class="material-symbols-outlined icon-filled">auto_awesome</span>
+          Enterprise Core v4.0 Now Live
+        </div>
+
+        <h1>
+          The single source of truth for your
+          <span>global workforce.</span>
+        </h1>
+
+        <p class="hero-text">
+          Consolidate employee data, performance cycles, and payroll into one unified enterprise platform.
+          Engineered for reliability and high-density information management.
+        </p>
+
+        <div class="hero-actions">
+          <button class="dark-button primary-action" type="button" (click)="getStarted()">
+            Get Started
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+          <button class="light-button" type="button">Watch Demo</button>
+        </div>
+
+        <div class="hero-metrics">
+          <div *ngFor="let s of stats">
+            <strong>{{ s.value }}</strong>
+            <span>{{ s.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-label="HRMS dashboard preview">
+        <div class="screen-frame">
+          <div class="preview-window">
+            <div class="window-top">
+              <span class="active-tab">HRMS24Pro</span>
+              <span>Assets</span>
+              <i></i>
+            </div>
+            <div class="preview-panel">
+              <div class="preview-meta">
+                <span>Global HRMS Layer</span>
+                <span>People Management</span>
+                <span>Q4 Analytics</span>
+              </div>
+              <h2>HRMS Dashboard Preview</h2>
+              <div class="preview-lines">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="preview-grid">
+                <div></div><div></div><div></div>
+              </div>
+              <div class="preview-chart">
+                <span style="height: 42%"></span>
+                <span style="height: 74%"></span>
+                <span style="height: 56%"></span>
+                <span style="height: 88%"></span>
+                <span style="height: 63%"></span>
+              </div>
+              <div class="preview-table">
+                <div *ngFor="let row of [1,2,3]">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+            <div class="mini-card">
+              <b>High Performer</b>
+              <span>Review Cycle</span>
+              <strong>+12.6%</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-chip">
+          <div class="chip-icon">
+            <span class="material-symbols-outlined icon-filled">analytics</span>
+          </div>
+          <div>
+            <strong>Real-time Analytics</strong>
+            <span>94% Retention Rate</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="partners-section">
+      <p>Trusted by the world's most innovative organizations</p>
+      <div>
+        <span *ngFor="let p of partners">{{ p }}</span>
+      </div>
+    </section>
+
+    <section class="platform-section" id="resources">
+      <div class="section-heading">
+        <h2>Engineered for Human Capital Management</h2>
+        <p>
+          Enterprise-grade tools to manage every stage of the employee lifecycle with precision
+          and clarity.
+        </p>
+      </div>
+
+      <div class="feature-layout">
+        <article class="feature-card performance-card">
+          <span class="material-symbols-outlined icon-filled">trending_up</span>
+          <h3>Performance Management</h3>
+          <p>
+            Dynamic feedback loops, OKR tracking, and AI-driven skill gap analysis to nurture your top talent.
+          </p>
+          <a href="#resources">Explore Performance <span>›</span></a>
+          <div class="person-silhouette" aria-hidden="true"></div>
+        </article>
+
+        <article class="feature-card data-card">
+          <span class="material-symbols-outlined icon-filled">hub</span>
+          <h3>Centralized Data</h3>
+          <p>
+            Eliminate silos with a single unified database for global payroll, benefits, and local compliance.
+          </p>
+          <div class="integrity-meter">
+            <div>
+              <span>Data Integrity</span>
+              <strong>100% Verified</strong>
+            </div>
+            <i></i>
+          </div>
+        </article>
+
+        <article class="feature-card portal-card" id="support">
+          <span class="material-symbols-outlined icon-filled">badge</span>
+          <h3>Self-Service Portal</h3>
+          <p>
+            Empower employees with mobile-first access to leave requests, payslips, and career roadmaps.
+          </p>
+          <button class="tiny-button" type="button">Launch Portal</button>
+        </article>
+
+        <article class="feature-card security-card" id="security">
+          <div class="security-image" aria-hidden="true">
+            <span></span>
+          </div>
+          <div>
+            <span class="material-symbols-outlined icon-filled shield-icon">verified_user</span>
+            <h3>Enterprise-Grade Security</h3>
+            <p>
+              SOC2 Type II compliant with AES-256 encryption at rest and in transit.
+              Your workforce data is our top priority.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="cta-panel">
+      <h2>Ready to modernize your HR operations?</h2>
+      <p>Join thousands of global enterprises scaling their workforce with confidence and clarity.</p>
+      <div>
+        <button class="white-button" type="button" (click)="getStarted()">Start Free Trial</button>
+        <button class="outline-dark-button" type="button" (click)="signIn()">Contact Sales</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <strong>HRMS Enterprise</strong>
+      <p>© 2024 HRMS Enterprise. Reliable Human Resource Management.</p>
+    </div>
+    <nav aria-label="Footer navigation">
+      <a href="#privacy">Privacy Policy</a>
+      <a href="#terms">Terms of Service</a>
+      <a href="#compliance">Compliance</a>
+      <a href="#security">Security Architecture</a>
+    </nav>
+  </footer>
+</div>

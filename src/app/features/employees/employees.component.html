@@ -1,0 +1,379 @@
+<div class="employees-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="text-h1">Employee Directory</h1>
+      <p class="text-body-sm" style="color:var(--color-on-surface-variant);margin-top:4px;">
+        Manage and view all employee records across the organization.
+      </p>
+    </div>
+    <button class="btn btn-secondary" (click)="showAddModal=true">
+      <span class="material-symbols-outlined">person_add</span> Add Employee
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <!-- Search -->
+      <div class="search-input-wrapper" style="width:320px;">
+        <span class="search-icon material-symbols-outlined">search</span>
+        <input class="form-input" placeholder="Search by name, title, or department…"
+               [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" />
+      </div>
+
+      <!-- Filters -->
+      <select class="form-input filter-select" [(ngModel)]="filterDept" (ngModelChange)="onFilter()">
+        <option value="">All Departments</option>
+        <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+      </select>
+
+      <select class="form-input filter-select" [(ngModel)]="filterStatus" (ngModelChange)="onFilter()">
+        <option value="">All Statuses</option>
+        <option *ngFor="let s of statuses" [value]="s">{{ s | titlecase }}</option>
+      </select>
+
+      <select class="form-input filter-select" [(ngModel)]="filterType" (ngModelChange)="onFilter()">
+        <option value="">All Types</option>
+        <option *ngFor="let t of types" [value]="t">{{ t | titlecase }}</option>
+      </select>
+
+      <button *ngIf="hasActiveFilters" class="btn btn-ghost btn-sm clear-btn" (click)="clearFilters()">
+        <span class="material-symbols-outlined">close</span> Clear
+      </button>
+    </div>
+
+    <div class="toolbar-right">
+      <span class="results-count">{{ employees.length }} employees</span>
+      <div class="view-toggle">
+        <button [class.active]="viewMode==='list'" (click)="viewMode='list'" title="List view">
+          <span class="material-symbols-outlined">list</span>
+        </button>
+        <button [class.active]="viewMode==='grid'" (click)="viewMode='grid'" title="Grid view">
+          <span class="material-symbols-outlined">grid_view</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner"></div><p>Loading employees…</p>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div *ngIf="!loading && viewMode==='list'" class="card" style="overflow:hidden;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th (click)="sort('firstName')" class="sortable">
+            Employee
+            <span class="material-symbols-outlined sort-icon" *ngIf="sortField==='firstName'">
+              {{ sortDir==='asc' ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
+            </span>
+          </th>
+          <th (click)="sort('jobTitle')" class="sortable">
+            Job Title
+            <span class="material-symbols-outlined sort-icon" *ngIf="sortField==='jobTitle'">
+              {{ sortDir==='asc' ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
+            </span>
+          </th>
+          <th>Department</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Location</th>
+          <th>Start Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of employees" class="table-row" (click)="openDetail(e)">
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="emp-avatar avatar avatar-sm">{{ initials(e) }}</div>
+              <div>
+                <div style="font-weight:600;font-size:13px;">{{ e.firstName }} {{ e.lastName }}</div>
+                <div style="font-size:11px;color:var(--color-on-surface-variant);">{{ e.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="font-size:13px;">{{ e.jobTitle }}</td>
+          <td style="font-size:13px;">{{ e.department.name }}</td>
+          <td><span class="badge" [class]="typeClass(e.employmentType)">{{ e.employmentType }}</span></td>
+          <td><span class="badge" [class]="statusClass(e.status)">{{ e.status | titlecase }}</span></td>
+          <td style="font-size:13px;color:var(--color-on-surface-variant);">{{ e.location }}</td>
+          <td style="font-size:12px;color:var(--color-on-surface-variant);">{{ formatDate(e.startDate) }}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm row-action" (click)="$event.stopPropagation(); openDetail(e)">
+              <span class="material-symbols-outlined">open_in_new</span>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="employees.length===0">
+          <td colspan="8">
+            <div class="empty-state" style="padding:3rem;">
+              <span class="material-symbols-outlined empty-icon">group_off</span>
+              <h3>No employees found</h3>
+              <p>Try adjusting your search or filters.</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- GRID VIEW -->
+  <div *ngIf="!loading && viewMode==='grid'" class="employee-grid">
+    <div class="employee-card card card-hover" *ngFor="let e of employees" (click)="openDetail(e)">
+      <div class="ec-header">
+        <div class="emp-avatar avatar avatar-lg">{{ initials(e) }}</div>
+        <span class="badge ec-status" [class]="statusClass(e.status)">{{ e.status | titlecase }}</span>
+      </div>
+      <div class="ec-body">
+        <h4>{{ e.firstName }} {{ e.lastName }}</h4>
+        <p class="ec-title">{{ e.jobTitle }}</p>
+        <p class="ec-dept">
+          <span class="material-symbols-outlined" style="font-size:13px;">business</span>
+          {{ e.department.name }}
+        </p>
+        <p class="ec-loc">
+          <span class="material-symbols-outlined" style="font-size:13px;">location_on</span>
+          {{ e.location }}
+        </p>
+      </div>
+      <div class="ec-footer">
+        <span class="badge" [class]="typeClass(e.employmentType)">{{ e.employmentType }}</span>
+        <span class="ec-id">{{ e.employeeId }}</span>
+      </div>
+    </div>
+    <div *ngIf="employees.length===0" class="empty-state" style="grid-column:1/-1;padding:3rem;">
+      <span class="material-symbols-outlined empty-icon">group_off</span>
+      <h3>No employees found</h3>
+      <p>Try adjusting your search or filters.</p>
+    </div>
+  </div>
+</div>
+
+<!-- EMPLOYEE DETAIL MODAL -->
+<div class="modal-overlay" *ngIf="selectedEmployee" (click)="closeDetail()">
+  <div class="modal-dialog emp-detail-modal" (click)="$event.stopPropagation()" style="max-width:540px;">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="emp-avatar avatar avatar-xl">{{ initials(selectedEmployee) }}</div>
+        <div>
+          <h2 class="text-h2">{{ selectedEmployee.firstName }} {{ selectedEmployee.lastName }}</h2>
+          <p style="color:var(--color-on-surface-variant);font-size:14px;">{{ selectedEmployee.jobTitle }}</p>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-icon" (click)="closeDetail()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+      <div class="detail-row">
+        <span class="detail-label"><span class="material-symbols-outlined">badge</span> Employee ID</span>
+        <span class="detail-value">{{ selectedEmployee.employeeId }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><span class="material-symbols-outlined">mail</span> Email</span>
+        <span class="detail-value">{{ selectedEmployee.email }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><span class="material-symbols-outlined">business</span> Department</span>
+        <span class="detail-value">{{ selectedEmployee.department.name }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><span class="material-symbols-outlined">location_on</span> Location</span>
+        <span class="detail-value">{{ selectedEmployee.location }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><span class="material-symbols-outlined">schedule</span> Start Date</span>
+        <span class="detail-value">{{ formatDate(selectedEmployee.startDate) }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><span class="material-symbols-outlined">work</span> Type</span>
+        <span class="badge" [class]="typeClass(selectedEmployee.employmentType)">{{ selectedEmployee.employmentType }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><span class="material-symbols-outlined">circle</span> Status</span>
+        <span class="badge" [class]="statusClass(selectedEmployee.status)">{{ selectedEmployee.status | titlecase }}</span>
+      </div>
+      <div class="detail-row" *ngIf="selectedEmployee.manager">
+        <span class="detail-label"><span class="material-symbols-outlined">person</span> Manager</span>
+        <span class="detail-value">{{ selectedEmployee.manager }}</span>
+      </div>
+    </div>
+        <button class="btn btn-danger" (click)="deleteEmployee(selectedEmployee!)">
+          <span class="material-symbols-outlined">delete</span> Delete
+        </button>
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="closeDetail()">Close</button>
+      <button class="btn btn-secondary" (click)="openEdit(selectedEmployee)">
+        <span class="material-symbols-outlined">edit</span> Edit Profile
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EMPLOYEE MODAL -->
+<div class="modal-overlay" *ngIf="showAddModal" (click)="showAddModal=false">
+  <div class="modal-dialog" (click)="$event.stopPropagation()" style="max-width:600px;">
+    <div class="modal-header">
+      <h2 class="text-h2">Add New Employee</h2>
+      <button class="btn btn-ghost btn-icon" (click)="showAddModal=false">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form #addForm="ngForm" (ngSubmit)="addEmployee(addForm.value)" style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input class="form-input" name="firstName" required ngModel />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input class="form-input" name="lastName" required ngModel />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" name="email" required ngModel />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Job Title </label>
+        <input class="form-input" name="jobTitle" required ngModel />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Department *</label>
+          <select class="form-input" name="departmentName" required ngModel>
+            <option value="">Select Department</option>
+            <option value="Unassigned">Unassigned</option>
+            <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Employment Type *</label>
+          <select class="form-input" name="employmentType" required ngModel>
+            <option value="">Select Type</option>
+            <option *ngFor="let t of types" [value]="t">{{ t | titlecase }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Location *</label>
+          <input class="form-input" name="location" required ngModel />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Date *</label>
+          <input class="form-input" type="date" name="startDate" required ngModel />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-input" name="status" ngModel>
+            <option value="active">Active</option>
+            <option value="probation">Probation</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Manager</label>
+          <input class="form-input" name="manager" ngModel />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="showAddModal=false">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="!addForm.valid">
+          <span class="material-symbols-outlined">person_add</span> Add Employee
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- EDIT EMPLOYEE MODAL -->
+<div class="modal-overlay" *ngIf="showEditModal" (click)="closeEdit()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()" style="max-width:600px;">
+    <div class="modal-header">
+      <h2 class="text-h2">Edit Employee</h2>
+      <button class="btn btn-ghost btn-icon" (click)="closeEdit()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form #editForm="ngForm" (ngSubmit)="updateEmployee(editForm.value)" style="padding:24px;display:flex;flex-direction:column;gap:16px;" *ngIf="selectedEmployeeForEdit">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input class="form-input" name="firstName" [ngModel]="selectedEmployeeForEdit.firstName" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input class="form-input" name="lastName" [ngModel]="selectedEmployeeForEdit.lastName" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email </label>
+        <input class="form-input" type="email" name="email" [ngModel]="selectedEmployeeForEdit.email" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Job Title </label>
+        <input class="form-input" name="jobTitle" [ngModel]="selectedEmployeeForEdit.jobTitle" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <select class="form-input" name="departmentName" [ngModel]="selectedEmployeeForEdit.department.name" required>
+            <option value="Unassigned">Unassigned</option>
+            <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+          </select>
+        </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Employment Type</label>
+          <select  class="form-input" name="employmentType" [ngModel]="selectedEmployeeForEdit.employmentType" required>
+            <option *ngFor="let t of types" [value]="t">{{ t | titlecase }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Manager</label>
+          <input class="form-input" name="manager" [ngModel]="selectedEmployeeForEdit.manager" />
+        </div>
+      </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Location </label>
+          <input class="form-input" name="location" [ngModel]="selectedEmployeeForEdit.location" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Date </label>
+          <input class="form-input" type="date" name="startDate" [ngModel]="selectedEmployeeForEdit.startDate" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-input" name="status" [ngModel]="selectedEmployeeForEdit.status">
+            <option value="active">Active</option>
+            <option value="on-leave">On Leave</option>
+            <option value="probation">Probation</option>
+            <option value="terminated">Terminated</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Manager</label>
+          <input class="form-input" name="manager" [ngModel]="selectedEmployeeForEdit.manager" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeEdit()">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="!editForm.valid">
+          <span class="material-symbols-outlined">save</span> Update Employee
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

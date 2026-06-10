@@ -1,0 +1,69 @@
+<aside class="sidebar" [class.collapsed]="collapsed" [class.mobile-open]="mobileOpen">
+
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <span class="material-symbols-outlined icon-filled">corporate_fare</span>
+    </div>
+    <div class="brand-text" *ngIf="!collapsed">
+      <span class="brand-name">Enterprise HR</span>
+      <span class="brand-sub">Admin Console</span>
+    </div>
+    <button class="collapse-btn" (click)="toggleCollapse()" [title]="collapsed ? 'Expand' : 'Collapse'">
+      <span class="material-symbols-outlined">
+        {{ collapsed ? 'chevron_right' : 'chevron_left' }}
+      </span>
+    </button>
+  </div>
+
+  <!-- Primary Navigation -->
+  <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+    <a
+      *ngFor="let item of navItems"
+      class="nav-item"
+      [class.active]="isActive(item.route)"
+      (click)="navigate(item.route)"
+      [title]="collapsed ? item.label : ''"
+      role="menuitem"
+    >
+      <span class="nav-icon material-symbols-outlined">{{ item.icon }}</span>
+      <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
+      <span class="nav-badge" *ngIf="item.badge && !collapsed">{{ item.badge }}</span>
+    </a>
+  </nav>
+
+  <!-- Divider -->
+  <div class="sidebar-divider"></div>
+
+  <!-- Bottom Items -->
+  <div class="sidebar-bottom">
+    <a
+      *ngFor="let item of bottomItems"
+      class="nav-item"
+      [class.active]="isActive(item.route)"
+      (click)="navigate(item.route)"
+      [title]="collapsed ? item.label : ''"
+    >
+      <span class="nav-icon material-symbols-outlined">{{ item.icon }}</span>
+      <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
+    </a>
+
+    <a class="nav-item" (click)="logout()" [title]="collapsed ? 'Log Out' : ''">
+      <span class="nav-icon material-symbols-outlined">logout</span>
+      <span class="nav-label" *ngIf="!collapsed">Log Out</span>
+    </a>
+  </div>
+
+  <!-- User Profile -->
+  <!-- <div class="sidebar-user" *ngIf="currentUser">
+    <div class="user-avatar avatar avatar-md" [title]="currentUser.firstName + ' ' + currentUser.lastName">
+      <img *ngIf="currentUser.avatarUrl" [src]="currentUser.avatarUrl" [alt]="currentUser.firstName" />
+      <span *ngIf="!currentUser.avatarUrl">{{ userInitials }}</span>
+    </div>
+    <div class="user-info" *ngIf="!collapsed">
+      <span class="user-name">{{ currentUser.firstName }} {{ currentUser.lastName }}</span>
+      <span class="user-role">{{ currentUser.jobTitle }}</span>
+    </div>
+  </div> -->
+
+</aside>
