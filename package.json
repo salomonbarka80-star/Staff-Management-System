@@ -1,5 +1,5 @@
 {
-  "name": "hrms-enterprise",
+  "name": "Staff-Management-System",
   "version": "1.0.0",
   "description": "Enterprise Human Resource Management System",
   
@@ -39,4 +39,9 @@
     "karma-jasmine-html-reporter": "^2.2.0",
     "typescript": "~5.2.0"
   }
+  {
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
 }
