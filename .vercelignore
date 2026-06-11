@@ -1,0 +1,13 @@
+# Block heavy package folders from upload
+node_modules/
+.angular/
+dist/
+
+# Block backend environment folders if present in this directory
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Block local git history files
+.git/
