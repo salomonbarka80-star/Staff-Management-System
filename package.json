@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "description": "Enterprise Human Resource Management System",
   
-  "scripts": {
+ "scripts": {
   "ng": "ng",
   "start": "ng serve",
-  "build": "ng build --configuration production",
+  "build": "ng build",
+  "build:prod": "ng build --configuration production",
   "vercel-build": "ng build --configuration production"
-  },
+},
   "private": true,
   "dependencies": {
     "@angular/animations": "^17.0.0",
