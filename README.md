@@ -94,3 +94,10 @@ All data flows through `HrDataService`. To connect the Django backend:
      apiUrl: 'http://localhost:8000/api/v1'
    };
    ```
+
+Click the blue Deploy button.
+
+Vercel will spin up a cloud environment, pull your repository code, install your dependencies safely on their end, and run the compilation build.
+
+Once the deployment tracker completes and shows the confetti celebration screen, click on the window preview image to open your live, running web application.
+
