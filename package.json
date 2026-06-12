@@ -39,9 +39,5 @@
     "karma-jasmine-html-reporter": "^2.2.0",
     "typescript": "~5.2.0"
   }
-  {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
+
 }

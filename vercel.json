@@ -1,17 +1,9 @@
 {
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/hrms-enterprise"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "version": 2,
+  "public": true,
+  "cleanUrls": true,
+  "outputDirectory": "dist/staff-management-system",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
