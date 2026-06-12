@@ -2,7 +2,7 @@
   "version": 2,
   "public": true,
   "cleanUrls": true,
-  "outputDirectory": "dist/staff-management-system",
+  "outputDirectory": "dist/hrms-enterprise",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
